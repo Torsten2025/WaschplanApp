@@ -142,14 +142,60 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
-// API: Alle Maschinen anzeigen
-app.get('/api/machines', async (req, res) => {
+// API: Alle Maschinen anzeigen (Adminbereich)
+app.get('/api/admin/machines', async (req, res) => {
     try {
         const machines = await dbAll(`SELECT * FROM machines`);
         res.json(machines);
     } catch (err) {
         console.error('Fehler beim Laden der Maschinen:', err.message);
         res.status(500).json({ error: 'Fehler beim Laden der Maschinen.' });
+    }
+});
+
+// API: Maschine hinzufügen
+app.post('/api/admin/addMachine', async (req, res) => {
+    const { name, type } = req.body;
+
+    if (!name || !type) {
+        return res.status(400).json({ error: 'Name und Typ sind erforderlich.' });
+    }
+
+    try {
+        const result = await dbRun(`INSERT INTO machines (name, type) VALUES (?, ?)`, [name, type]);
+        res.json({ message: 'Maschine erfolgreich hinzugefügt.', machineId: result.lastID });
+    } catch (err) {
+        console.error('Fehler beim Hinzufügen der Maschine:', err.message);
+        res.status(500).json({ error: 'Fehler beim Hinzufügen der Maschine.' });
+    }
+});
+
+// API: Reservierungen anzeigen
+app.get('/api/admin/reservations', async (req, res) => {
+    try {
+        const reservations = await dbAll(`SELECT * FROM bookings`);
+        res.json(reservations);
+    } catch (err) {
+        console.error('Fehler beim Laden der Reservierungen:', err.message);
+        res.status(500).json({ error: 'Fehler beim Laden der Reservierungen.' });
+    }
+});
+
+// API: Reservierung löschen
+app.delete('/api/admin/reservations/:id', async (req, res) => {
+    const reservationId = parseInt(req.params.id);
+
+    try {
+        const result = await dbRun(`DELETE FROM bookings WHERE id = ?`, [reservationId]);
+
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Reservierung nicht gefunden.' });
+        }
+
+        res.json({ message: 'Reservierung erfolgreich gelöscht.' });
+    } catch (err) {
+        console.error('Fehler beim Löschen der Reservierung:', err.message);
+        res.status(500).json({ error: 'Fehler beim Löschen der Reservierung.' });
     }
 });
 
@@ -217,6 +263,41 @@ app.get('/api/logs', async (req, res) => {
     }
 });
 
+// API: Logs einer Maschine anzeigen
+app.get('/api/logs/:machineId', async (req, res) => {
+    const machineId = parseInt(req.params.machineId);
+
+    try {
+        const logs = await dbAll(`SELECT * FROM logs WHERE machine_id = ?`, [machineId]);
+        res.json(logs);
+    } catch (err) {
+        console.error('Fehler beim Laden der Logs für Maschine:', err.message);
+        res.status(500).json({ error: 'Fehler beim Laden der Logs für Maschine.' });
+    }
+});
+
+// API: Log hinzufügen
+app.post('/api/logs', async (req, res) => {
+    const { machineId, datum, beschreibung, status } = req.body;
+
+    if (!machineId || !datum || !beschreibung || !status) {
+        return res.status(400).json({ error: 'Alle Felder (machineId, datum, beschreibung, status) sind erforderlich.' });
+    }
+
+    try {
+        const result = await dbRun(
+            `INSERT INTO logs (machine_id, datum, beschreibung, status) VALUES (?, ?, ?, ?)`,
+            [machineId, datum, beschreibung, status]
+        );
+
+        res.json({ message: 'Log erfolgreich hinzugefügt.', logId: result.lastID });
+    } catch (err) {
+        console.error('Fehler beim Hinzufügen des Logs:', err.message);
+        res.status(500).json({ error: 'Fehler beim Hinzufügen des Logs.' });
+    }
+});
+
 // Server starten
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
+
