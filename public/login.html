@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="star-trek-bg">
+  <!-- Seite für Login -->
   <div class="panel">
     <h1 class="title">Waschplan Login</h1>
     <form id="loginForm">
@@ -22,49 +23,86 @@
     </form>
     <p id="message" class="message"></p>
   </div>
+
   <script>
+    // Liste der Variablen:
+    // - form: Das Login-Formular
+    // - messageEl: Das Element für Fehlermeldungen
+    // - API-Endpunkt: /api/login (POST)
+    // - Rollen: admin, user
+
+    // Liste der Funktionen:
+    // - handleFormSubmit: Behandelt das Abschicken des Login-Formulars
+    // - processLoginResponse: Verarbeitet die Login-Antwort
+
     document.addEventListener('DOMContentLoaded', () => {
+      console.log("1. Login-Seite geladen.");
+
+      // 1. DOM-Elemente definieren
       const form = document.getElementById('loginForm');
       const messageEl = document.getElementById('message');
 
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const kuerzel = formData.get('kuerzel');
-        const password = formData.get('password');
+      if (!form || !messageEl) {
+        console.error("Ein oder mehrere notwendige Elemente fehlen.");
+        return;
+      }
 
-        fetch('/api/login', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({kuerzel, password})
+      // 2. Event-Listener hinzufügen
+      form.addEventListener('submit', (e) => handleFormSubmit(e, form, messageEl));
+    });
+
+    // Funktion 1: Behandelt das Abschicken des Login-Formulars
+    function handleFormSubmit(event, form, messageEl) {
+      console.log("2. Login-Formular abgeschickt.");
+      event.preventDefault();
+
+      const formData = new FormData(form);
+      const kuerzel = formData.get('kuerzel');
+      const password = formData.get('password');
+
+      console.log("3. Daten gesendet an API:", { kuerzel, password });
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kuerzel, password })
+      })
+        .then((res) => {
+          console.log("4. API-Antwortstatus:", res.status);
+          if (!res.ok) throw new Error(`Fehler: ${res.status}`);
+          return res.json();
         })
-        .then(res => res.json())
-        .then(data => {
-          if(data.error) {
-            messageEl.style.color = 'red';
-            messageEl.textContent = data.error;
-          } else {
-            // Kürzel im SessionStorage speichern
-            sessionStorage.setItem('kuerzel', data.kuerzel);
-
-            messageEl.style.color = 'lime';
-            messageEl.textContent = data.message;
-
-            // Weiterleitung basierend auf der Rolle
-            if(data.role === 'admin') {
-              window.location.href = '/admin.html';
-            } else {
-              window.location.href = '/user.html?userId=' + data.userId;
-            }
-          }
-        })
-        .catch(err => {
-          console.error('Fehler beim Verarbeiten der Antwort:', err);
+        .then((data) => processLoginResponse(data, messageEl))
+        .catch((err) => {
+          console.error("Fehler beim Verarbeiten der Antwort:", err);
           messageEl.style.color = 'red';
           messageEl.textContent = 'Ein unbekannter Fehler ist aufgetreten.';
         });
-      });
-    });
+    }
+
+    // Funktion 2: Verarbeitet die Login-Antwort
+    function processLoginResponse(data, messageEl) {
+      if (data.error) {
+        console.warn("5. Fehler beim Login:", data.error);
+        messageEl.style.color = 'red';
+        messageEl.textContent = data.error;
+        return;
+      }
+
+      console.log("6. Login erfolgreich:", data);
+
+      sessionStorage.setItem('kuerzel', data.kuerzel);
+      messageEl.style.color = 'lime';
+      messageEl.textContent = data.message;
+
+      if (data.role === 'admin') {
+        console.log("7. Weiterleitung zur Admin-Seite.");
+        window.location.href = '/admin.html';
+      } else {
+        console.log("7. Weiterleitung zur User-Seite.");
+        window.location.href = `/user.html?userId=${data.userId}`;
+      }
+    }
   </script>
 </body>
 </html>

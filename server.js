@@ -13,6 +13,25 @@
 //  12. /api/logs (GET): Alle Logs abrufen
 //  13. /api/logs/:machineId (GET): Logs einer bestimmten Maschine abrufen
 
+// Liste der Funktionen (Schreibweisenübersicht):
+//  1. dbGet(sql, params): Führt eine SQLite-Abfrage aus und gibt eine einzelne Zeile zurück.
+//  2. dbAll(sql, params): Führt eine SQLite-Abfrage aus und gibt alle Zeilen zurück.
+//  3. dbRun(sql, params): Führt eine SQLite-Abfrage aus, die keine Rückgabe benötigt.
+//  4. app.get("/api/admin/users"): Ruft alle Nutzer aus der Datenbank ab.
+//  5. app.post("/api/admin/addUser"): Fügt einen neuen Nutzer zur Datenbank hinzu.
+//  6. app.put("/api/admin/users/:id"): Bearbeitet einen bestehenden Nutzer.
+//  7. app.delete("/api/admin/users/:id"): Löscht einen Nutzer aus der Datenbank.
+//  8. app.get("/api/admin/machines"): Ruft alle Maschinen aus der Datenbank ab.
+//  9. app.post("/api/admin/addMachine"): Fügt eine neue Maschine zur Datenbank hinzu.
+// 10. app.put("/api/admin/machines/:id"): Bearbeitet eine bestehende Maschine.
+// 11. app.delete("/api/admin/machines/:id"): Löscht eine Maschine aus der Datenbank.
+// 12. app.get("/api/bookings"): Ruft alle Buchungen aus der Datenbank ab.
+// 13. app.post("/api/admin/addBooking"): Fügt eine neue Buchung zur Datenbank hinzu.
+// 14. app.delete("/api/user/deleteBooking/:id"): Storniert eine Buchung.
+// 15. app.get("/api/logs"): Ruft alle Logs aus der Datenbank ab.
+// 16. app.get("/api/logs/:machineId"): Ruft Logs einer bestimmten Maschine ab.
+// 17. app.post("/api/login"): Behandelt den Login von Nutzern.
+
 const express = require("express");
 const path = require("path");
 const dayjs = require("dayjs");
@@ -247,6 +266,30 @@ app.get("/api/logs/:machineId", async (req, res) => {
     } catch (err) {
         console.error("Fehler beim Laden der Logs für die Maschine:", err);
         res.status(500).json({ error: "Fehler beim Laden der Logs für die Maschine." });
+    }
+});
+
+// 17. app.post("/api/login"): Behandelt den Login von Nutzern.
+app.post('/api/login', async (req, res) => {
+    const { kuerzel, password } = req.body;
+
+    try {
+        const user = await dbGet('SELECT * FROM users WHERE kuerzel = ?', [kuerzel]);
+
+        if (!user) {
+            return res.status(404).json({ error: 'Benutzer nicht gefunden.' });
+        }
+
+        if (kuerzel === 'Admin' && password === 'Admin') {
+            return res.json({ message: 'Login erfolgreich', role: 'admin', kuerzel });
+        } else if (!password && kuerzel !== 'Admin') {
+            return res.json({ message: 'Login erfolgreich', role: 'user', kuerzel, userId: user.id });
+        } else {
+            return res.status(401).json({ error: 'Ungültige Anmeldedaten.' });
+        }
+    } catch (err) {
+        console.error('Fehler beim Login:', err.message);
+        res.status(500).json({ error: 'Interner Serverfehler.' });
     }
 });
 
