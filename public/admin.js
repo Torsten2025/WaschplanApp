@@ -102,113 +102,102 @@ if (adminKuerzel) {
   });
 
   // Nutzer laden
- function loadUsers() {
+  function loadUsers() {
     usersTableBody.innerHTML = '<tr><td colspan="4">Lade Nutzer...</td></tr>';
 
     fetch('/api/admin/users')
-        .then((res) => {
-            console.log("API-Antwort Status (Nutzer):", res.status); // Status prüfen
-            if (!res.ok) {
-                throw new Error(`Fehler beim Laden der Nutzer: ${res.status}`);
-            }
-            return res.json();
-        })
-        .then((data) => {
-            console.log("Nutzerdaten von der API:", data); // Die erhaltenen Daten loggen
-            usersTableBody.innerHTML = '';
-            data.forEach((user) => {
-                console.log("Verarbeite Nutzer:", user); // Einzelne Nutzer prüfen
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.kuerzel}</td>
-                    <td><button class="edit-btn" data-id="${user.id}" data-value="${user.kuerzel}">✏️</button></td>
-                    <td><button class="delete-btn" data-id="${user.id}">🗑️</button></td>
-                `;
-                usersTableBody.appendChild(tr);
-            });
-            attachUserListeners();
-        })
-        .catch((err) => {
-            console.error('Fehler beim Laden der Nutzer:', err);
-            usersTableBody.innerHTML = '<tr><td colspan="4">Fehler beim Laden der Nutzer.</td></tr>';
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Fehler beim Laden der Nutzer: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        usersTableBody.innerHTML = '';
+        data.forEach((user) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${user.ID}</td>
+            <td>${user.Kuerzel}</td>
+            <td><button class="edit-btn" data-id="${user.ID}" data-value="${user.Kuerzel}">✏️</button></td>
+            <td><button class="delete-btn" data-id="${user.ID}">🗑️</button></td>
+          `;
+          usersTableBody.appendChild(tr);
         });
-}
-
+        attachUserListeners();
+      })
+      .catch((err) => {
+        console.error('Fehler beim Laden der Nutzer:', err);
+        usersTableBody.innerHTML = '<tr><td colspan="4">Fehler beim Laden der Nutzer.</td></tr>';
+      });
+  }
 
   // Maschinen laden
   function loadMachines() {
     machinesTableBody.innerHTML = '<tr><td colspan="5">Lade Maschinen...</td></tr>';
 
     fetch('/api/admin/machines')
-        .then((res) => {
-            console.log("API-Antwort Status (Maschinen):", res.status); // Status prüfen
-            if (!res.ok) {
-                throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
-            }
-            return res.json();
-        })
-        .then((data) => {
-            console.log("Maschinendaten von der API:", data); // Die erhaltenen Daten loggen
-            machinesTableBody.innerHTML = '';
-            data.forEach((machine) => {
-                console.log("Verarbeite Maschine:", machine); // Einzelne Maschinen prüfen
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${machine.id}</td>
-                    <td>${machine.name}</td>
-                    <td>${machine.type}</td>
-                    <td><button class="edit-btn" data-id="${machine.id}" data-name="${machine.name}" data-type="${machine.type}">✏️</button></td>
-                    <td><button class="delete-btn" data-id="${machine.id}">🗑️</button></td>
-                `;
-                machinesTableBody.appendChild(tr);
-            });
-            attachMachineListeners();
-        })
-        .catch((err) => {
-            console.error('Fehler beim Laden der Maschinen:', err);
-            machinesTableBody.innerHTML = '<tr><td colspan="5">Fehler beim Laden der Maschinen.</td></tr>';
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        machinesTableBody.innerHTML = '';
+        data.forEach((machine) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${machine.ID}</td>
+            <td>${machine.Name}</td>
+            <td>${machine.Typ}</td>
+            <td><button class="edit-btn" data-id="${machine.ID}" data-name="${machine.Name}" data-type="${machine.Typ}">✏️</button></td>
+            <td><button class="delete-btn" data-id="${machine.ID}">🗑️</button></td>
+          `;
+          machinesTableBody.appendChild(tr);
         });
-}
-
+        attachMachineListeners();
+      })
+      .catch((err) => {
+        console.error('Fehler beim Laden der Maschinen:', err);
+        machinesTableBody.innerHTML = '<tr><td colspan="5">Fehler beim Laden der Maschinen.</td></tr>';
+      });
+  }
 
   // Reservierungen laden
   function loadReservations() {
     resTableBody.innerHTML = '<tr><td colspan="5">Lade Reservierungen...</td></tr>';
 
     fetch('/api/admin/reservations')
-        .then((res) => {
-            console.log("API-Antwort Status (Reservierungen):", res.status); // Status prüfen
-            if (!res.ok) {
-                throw new Error(`Fehler beim Laden der Reservierungen: ${res.status}`);
-            }
-            return res.json();
-        })
-        .then((data) => {
-            console.log("Reservierungsdaten von der API:", data); // Die erhaltenen Daten loggen
-            resTableBody.innerHTML = '';
-            data.forEach((reservation) => {
-                console.log("Verarbeite Reservierung:", reservation); // Einzelne Reservierungen prüfen
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${reservation.id}</td>
-                    <td>${reservation.start_time}</td>
-                    <td>${reservation.end_time}</td>
-                    <td>${reservation.email || 'Keine Email'}</td>
-                    <td>${reservation.user_kuerzel || 'Kein Nutzer'}</td>
-                    <td>${reservation.machine_name || 'Keine Maschine'}</td>
-                    <td><button class="delete-btn" data-id="${reservation.id}">🗑️</button></td>
-                `;
-                resTableBody.appendChild(tr);
-            });
-            attachReservationListeners();
-        })
-        .catch((err) => {
-            console.error('Fehler beim Laden der Reservierungen:', err);
-            resTableBody.innerHTML = '<tr><td colspan="5">Fehler beim Laden der Reservierungen.</td></tr>';
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Fehler beim Laden der Reservierungen: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log('Reservierungen vom Server:', data); // Debug-Ausgabe
+        resTableBody.innerHTML = '';
+        data.forEach((reservation) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${reservation.ID}</td>
+            <td>${reservation.Startzeit}</td>
+            <td>${reservation.Endzeit}</td>
+            <td>${reservation.Email || 'Keine Email'}</td>
+            <td>${reservation.UserKuerzel || 'Kein Nutzer'}</td>
+            <td>${reservation.MachineName || 'Keine Maschine'}</td>
+            <td><button class="delete-btn" data-id="${reservation.ID}">🗑️</button></td>
+          `;
+          resTableBody.appendChild(tr);
         });
-}
-
+        attachReservationListeners();
+      })
+      .catch((err) => {
+        console.error('Fehler beim Laden der Reservierungen:', err);
+        resTableBody.innerHTML = '<tr><td colspan="5">Fehler beim Laden der Reservierungen.</td></tr>';
+      });
+  }
 
   // Logout-Button
   logoutBtn.addEventListener('click', () => {
