@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Waschplan</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="star-trek-bg">
+  <div class="panel">
+    <h1 class="title">Waschplan Login</h1>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="kuerzel">Kürzel:</label>
+        <input type="text" id="kuerzel" name="kuerzel" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label for="password">Passwort (nur für Admin):</label>
+        <input type="password" id="password" name="password" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn">Einloggen</button>
+    </form>
+    <p id="message" class="message"></p>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('loginForm');
+      const messageEl = document.getElementById('message');
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const kuerzel = formData.get('kuerzel');
+        const password = formData.get('password');
+
+        fetch('/api/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({kuerzel, password})
+        })
+        .then(res => res.json())
+        .then(data => {
+          if(data.error) {
+            messageEl.style.color = 'red';
+            messageEl.textContent = data.error;
+          } else {
+            // Kürzel im SessionStorage speichern
+            sessionStorage.setItem('kuerzel', data.kuerzel);
+
+            messageEl.style.color = 'lime';
+            messageEl.textContent = data.message;
+
+            // Weiterleitung basierend auf der Rolle
+            if(data.role === 'admin') {
+              window.location.href = '/admin.html';
+            } else {
+              window.location.href = '/user.html?userId=' + data.userId;
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Fehler beim Verarbeiten der Antwort:', err);
+          messageEl.style.color = 'red';
+          messageEl.textContent = 'Ein unbekannter Fehler ist aufgetreten.';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

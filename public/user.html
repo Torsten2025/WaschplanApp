@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="GBMZ Maneggplatz 18 - Buchungskalender für Waschmaschinen und Trocknungsräume" />
+  <meta name="keywords" content="GBMZ, Maneggplatz, Buchungskalender, Waschmaschinen, Trocknungsräume" />
+  <meta name="author" content="GBMZ Maneggplatz 18" />
+  <title>GBMZ Maneggplatz 18 Waschkalender</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
+</head>
+<body>
+  <header>
+    <h1>GBMZ Maneggplatz 18</h1>
+    <h2>Waschkalender</h2>
+  </header>
+  <main>
+    <!-- Navigation zur Steuerung des Kalenders -->
+    <section id="navigationContainer" aria-label="Monatsnavigation">
+      <button id="prevMonth" class="nav-button" aria-label="Vorheriger Monat">← Vorheriger Monat</button>
+      <h3 id="currentMonthYear">Dezember 2024</h3>
+      <button id="nextMonth" class="nav-button" aria-label="Nächster Monat">Nächster Monat →</button>
+    </section>
+
+    <!-- Kalender für Maschinen wird dynamisch generiert -->
+    <section id="machineCalendars" class="calendar-container" aria-live="polite">
+      <!-- Dynamischer Inhalt -->
+    </section>
+
+    <!-- Formular zur Fehlererfassung für Waschmaschinen -->
+    <section id="logFormSection">
+      <h3>Fehler melden</h3>
+      <form id="logForm">
+        <div class="form-group">
+          <label for="machineSelect">Maschine:</label>
+          <select id="machineSelect" name="machineSelect" required>
+            <option value="">Bitte Maschine auswählen</option>
+            <!-- Dynamisch generierte Optionen -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="logDescription">Fehlerbeschreibung:</label>
+          <textarea id="logDescription" name="logDescription" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn">Fehler melden</button>
+      </form>
+      <p id="logMessage" class="message"></p>
+    </section>
+
+    <!-- Logout-Button -->
+    <button id="logoutButton" class="logout-button" aria-label="Ausloggen">Ausloggen</button>
+  </main>
+  <footer>
+    <p>&copy; 2024 GBMZ Maneggplatz 18. Alle Rechte vorbehalten.</p>
+    <p><a href="datenschutz.html" aria-label="Datenschutzerklärung">Datenschutzerklärung</a></p>
+  </footer>
+  
+  <!-- Skripte -->
+  <script src="user.js" defer></script>
+</body>
+</html>

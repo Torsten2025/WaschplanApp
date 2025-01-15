@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Waschplan Reservierung</title>
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" 
+    rel="stylesheet"
+  >
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Waschplan - Termin reservieren</h1>
+
+    <form id="reservationForm" class="reservation-form">
+      <div class="form-group">
+        <label for="start">Startzeit (YYYY-MM-DD HH:mm):</label>
+        <input type="text" id="start" name="start" placeholder="2024-12-31 08:00" required>
+      </div>
+
+      <div class="form-group">
+        <label for="end">Endzeit (YYYY-MM-DD HH:mm):</label>
+        <input type="text" id="end" name="end" placeholder="2024-12-31 10:00" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">E-Mail Adresse:</label>
+        <input type="email" id="email" name="email" placeholder="beispiel@domain.com" required>
+      </div>
+
+      <button type="submit">Reservierung abschicken</button>
+    </form>
+
+    <p id="message" class="message"></p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
