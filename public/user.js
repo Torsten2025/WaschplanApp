@@ -129,64 +129,48 @@ logoutButton.addEventListener("click", () => {
       .catch((err) => console.error("Fehler beim Laden der Logs:", err.message));
   }
 
+// Funktion: Kalender erstellen
 function buildCalendars() {
     console.log("Kalender wird erstellt...");
 
-    // Kalender-Container leeren
     calendarContainer.innerHTML = "";
 
-    // Titel des aktuellen Monats aktualisieren
     document.getElementById("currentMonthYear").textContent =
         dayjs(new Date(currentYear, currentMonth)).format("MMMM YYYY");
 
-    // Gruppen für Waschmaschinen und Trocknungsräume erstellen
     const washerGroup = document.createElement("div");
     washerGroup.classList.add("washer-group");
 
     const dryerGroup = document.createElement("div");
     dryerGroup.classList.add("dryer-group");
 
-    // Maschinen in die passenden Gruppen einteilen
     allMachines.forEach((machine) => {
         console.log("Kalender für Maschine:", machine);
+
+        if (!machine.type) {
+            console.error(`Maschine hat keinen Typ:`, machine);
+            return; // Überspringe Maschinen ohne Typ
+        }
 
         const calendarDiv = document.createElement("div");
         calendarDiv.classList.add("machine-calendar");
         calendarDiv.innerHTML = `
             <h3>${machine.name} (${machine.type})</h3>
             <div id="calendar-${machine.id}" class="month-grid"></div>
-            <button class="report-issue-button" data-machine-id="${machine.id}">Fehler melden</button>
-            <div id="log-${machine.id}" class="machine-log"></div>
         `;
 
-        // Maschinen je nach Typ in die richtige Gruppe einfügen
         if (machine.type.toLowerCase().includes("waschmaschine")) {
             washerGroup.appendChild(calendarDiv);
         } else if (machine.type.toLowerCase().includes("trocknungsraum")) {
             dryerGroup.appendChild(calendarDiv);
         }
-
-        // Debugging: Prüfen, ob loadBookings verfügbar ist
-        try {
-            console.log("Rufe loadBookings für Maschine auf:", machine);
-            loadBookings(machine);
-        } catch (err) {
-            console.error("Fehler beim Aufrufen von loadBookings:", err);
-        }
-
-        // Event Listener für "Fehler melden" Button
-        calendarDiv.querySelector(".report-issue-button").addEventListener("click", () => {
-            const description = prompt("Bitte beschreiben Sie den Fehler:");
-            if (description) reportMachineIssue(machine.id, description);
-        });
     });
 
-    // Gruppen in den Hauptcontainer einfügen
     calendarContainer.appendChild(washerGroup);
     calendarContainer.appendChild(dryerGroup);
-
-    console.log("Kalender wurde erfolgreich erstellt.");
+    console.log("Kalender erfolgreich erstellt.");
 }
+
 
 function loadBookings(machine) {
     console.log("Lade Buchungen für Maschine:", machine);
