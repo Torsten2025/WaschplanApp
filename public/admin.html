@@ -1,113 +1,64 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - Waschplan</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="star-trek-bg">
-  <div class="panel">
-    <h1 class="title">Admin Panel</h1>
-
-    <h2 class="subtitle">Neuen Nutzer anlegen</h2>
+<body>
+  <header>
+    <h1>Admin-Bereich</h1>
+    <button id="logoutButton">Logout</button>
+  </header>
+  <section>
     <form id="addUserForm">
-      <div class="form-group">
-        <label for="newUserKuerzel">Kürzel:</label>
-        <input type="text" id="newUserKuerzel" name="newUserKuerzel" placeholder="z.B. MaxM" required>
-      </div>
-      <button type="submit" class="btn">Nutzer anlegen</button>
+      <label for="newUser">Neuen Nutzer hinzufügen:</label>
+      <input type="text" id="newUser" name="newUser" required>
+      <button type="submit">Hinzufügen</button>
     </form>
-    <p id="addUserMessage" class="message"></p>
-
-    <h2 class="subtitle">Neue Maschine anlegen</h2>
     <form id="addMachineForm">
-      <div class="form-group">
-        <label for="machineName">Name:</label>
-        <input type="text" id="machineName" name="machineName" placeholder="z.B. Maschine 1" required>
-      </div>
-      <div class="form-group">
-        <label for="machineType">Typ:</label>
-        <select id="machineType" name="machineType" required>
-          <option value="">Bitte wählen</option>
-          <option value="washer">Waschmaschine</option>
-          <option value="dryer">Trocknungsraum</option>
-        </select>
-      </div>
-      <button type="submit" class="btn">Maschine anlegen</button>
+      <label for="newMachine">Neue Maschine hinzufügen:</label>
+      <input type="text" id="newMachine" name="newMachine" required>
+      <label for="machineType">Typ:</label>
+      <select id="machineType" name="machineType">
+        <option value="Waschmaschine">Waschmaschine</option>
+        <option value="Trocknungsraum">Trocknungsraum</option>
+      </select>
+      <button type="submit">Hinzufügen</button>
     </form>
-    <p id="addMachineMessage" class="message"></p>
-
-    <h2 class="subtitle">Alle Nutzer</h2>
-    <div class="table-container">
-      <table class="styled-table" id="usersTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Kürzel</th>
-            <th>Bearbeiten</th>
-            <th>Löschen</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <h2 class="subtitle">Alle Maschinen</h2>
-    <div class="table-container">
-      <table class="styled-table" id="machinesTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Typ</th>
-            <th>Bearbeiten</th>
-            <th>Löschen</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <h2 class="subtitle">Alle Reservierungen</h2>
-    <div class="table-container">
-      <table class="styled-table" id="resTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Start</th>
-            <th>Ende</th>
-            <th>Email</th>
-            <th>Nutzer</th>
-            <th>Maschine</th>
-            <th>Löschen</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <!-- Logbuch -->
-    <h2 class="subtitle">Waschmaschinen-Logbuch</h2>
-    <div class="table-container">
-      <table class="styled-table" id="logsTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Maschine</th>
-            <th>Datum</th>
-            <th>Fehlerbeschreibung</th>
-            <th>Löschen</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-    <button id="addLogButton" class="btn">Neues Log hinzufügen</button>
-    <p id="logMessage" class="message"></p>
-
-    <button id="logoutBtn" class="btn" style="margin-top:20px;">Logout</button>
-  </div>
-  <script src="admin.js"></script>
+  </section>
+  <section>
+    <h2>Nutzerverwaltung</h2>
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Kürzel</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamische Inhalte -->
+      </tbody>
+    </table>
+  </section>
+  <section>
+    <h2>Maschinenverwaltung</h2>
+    <table id="machineTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Typ</th>
+          <th>Aktionen</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamische Inhalte -->
+      </tbody>
+    </table>
+  </section>
+  <script src="admin.js" defer></script>
 </body>
 </html>
