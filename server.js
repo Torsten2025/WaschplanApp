@@ -263,41 +263,6 @@ app.get('/api/logs', async (req, res) => {
     }
 });
 
-// API: Logs einer Maschine anzeigen
-app.get('/api/logs/:machineId', async (req, res) => {
-    const machineId = parseInt(req.params.machineId);
-
-    try {
-        const logs = await dbAll(`SELECT * FROM logs WHERE machine_id = ?`, [machineId]);
-        res.json(logs);
-    } catch (err) {
-        console.error('Fehler beim Laden der Logs für Maschine:', err.message);
-        res.status(500).json({ error: 'Fehler beim Laden der Logs für Maschine.' });
-    }
-});
-
-// API: Log hinzufügen
-app.post('/api/logs', async (req, res) => {
-    const { machineId, datum, beschreibung, status } = req.body;
-
-    if (!machineId || !datum || !beschreibung || !status) {
-        return res.status(400).json({ error: 'Alle Felder (machineId, datum, beschreibung, status) sind erforderlich.' });
-    }
-
-    try {
-        const result = await dbRun(
-            `INSERT INTO logs (machine_id, datum, beschreibung, status) VALUES (?, ?, ?, ?)`,
-            [machineId, datum, beschreibung, status]
-        );
-
-        res.json({ message: 'Log erfolgreich hinzugefügt.', logId: result.lastID });
-    } catch (err) {
-        console.error('Fehler beim Hinzufügen des Logs:', err.message);
-        res.status(500).json({ error: 'Fehler beim Hinzufügen des Logs.' });
-    }
-});
-
 // Server starten
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
-
