@@ -119,9 +119,9 @@ logoutButton.addEventListener("click", () => {
         allMachines.forEach((machine) => {
           const logContainer = document.getElementById(`log-${machine.id}`);
           if (logContainer) {
-            const machineLogs = logs.filter((log) => log.MachineID === machine.id);
+            const machineLogs = logs.filter((log) => log.machine_id === machine.id);
             logContainer.innerHTML = machineLogs
-              .map((log) => `<p>${log.Datum}: ${log.Beschreibung} (${log.Status})</p>`)
+              .map((log) => `<p>${log.datum}: ${log.beschreibung} (${log.status})</p>`)
               .join("");
           }
         });
@@ -187,15 +187,15 @@ function loadBookings(machine) {
 
             // Prüfe die Übereinstimmung der Namen
             bookings.forEach((b) => {
-                console.log("Vergleich:", b.MachineName, "===", machine.name, b.MachineName === machine.name);
+                console.log("Vergleich:", b.machine_name, "===", machine.name, b.machine_name === machine.name);
             });
 
             // Filtere die Buchungen
             const filteredBookings = bookings.filter(
                 (b) =>
-                    b.MachineName === machine.name &&
-                    dayjs(b.Startzeit).year() === currentYear &&
-                    dayjs(b.Startzeit).month() === currentMonth
+                    b.machine_name === machine.name &&
+                    dayjs(b.start_time).year() === currentYear &&
+                    dayjs(b.start_time).month() === currentMonth
             );
 
             console.log("Gefilterte Buchungen:", filteredBookings);
@@ -229,22 +229,22 @@ function loadBookings(machine) {
             const slotStartTime = `${date}T${slot.split("-")[0]}`;
 
             const isBooked = bookings.some(
-                (b) => dayjs(b.Startzeit).format("YYYY-MM-DDTHH:mm") === slotStartTime
+                (b) => dayjs(b.start_time).format("YYYY-MM-DDTHH:mm") === slotStartTime
             );
 
             slotButton.classList.add("slot-button", isBooked ? "slot-booked" : "slot-free");
 
             if (isBooked) {
                 const booking = bookings.find(
-                    (b) => dayjs(b.Startzeit).format("YYYY-MM-DDTHH:mm") === slotStartTime
+                    (b) => dayjs(b.start_time).format("YYYY-MM-DDTHH:mm") === slotStartTime
                 );
 
-                if (booking.UserKuerzel === userKuerzel) {
+                if (booking.user_kuerzel === userKuerzel) {
                     slotButton.textContent = "Stornieren (Meine)";
                     slotButton.classList.add("my-booking");
-                    slotButton.addEventListener("click", () => cancelBooking(booking.ID));
+                    slotButton.addEventListener("click", () => cancelBooking(booking.id));
                 } else {
-                    slotButton.textContent = `Gebucht von ${booking.UserKuerzel}`;
+                    slotButton.textContent = `Gebucht von ${booking.user_kuerzel}`;
                     slotButton.disabled = true;
                 }
             } else {
@@ -258,7 +258,6 @@ function loadBookings(machine) {
         calendarElement.appendChild(dayCell);
     });
 }
-
 
 function bookSlot(machineId, startTime) {
     console.log("Slot wird gebucht für Maschine:", machineId, "Startzeit:", startTime);
@@ -305,13 +304,10 @@ function bookSlot(machineId, startTime) {
         });
 }
 
-// Die Funktion cancelBooking auf oberster Ebene definieren
 function cancelBooking(bookingId) {
     console.log("Buchung wird storniert:", bookingId);
 
-    // API-Aufruf, um die Buchung zu löschen
     fetch(`/api/user/deleteBooking/${bookingId}`, { method: "DELETE" })
-
         .then((res) => {
             if (!res.ok) throw new Error(`Fehler: ${res.status}`);
             return res.json();
@@ -321,7 +317,7 @@ function cancelBooking(bookingId) {
                 alert(`Fehler: ${data.error}`);
             } else {
                 alert("Buchung erfolgreich storniert!");
-                buildCalendars(); // Kalender neu laden
+                buildCalendars();
             }
         })
         .catch((err) => {
@@ -330,8 +326,7 @@ function cancelBooking(bookingId) {
         });
 }
 
+console.log("Initialisiere Navigation und lade Maschinen...");
+createNavigation();
+loadMachines();
 
-  console.log("Initialisiere Navigation und lade Maschinen...");
-  createNavigation();
-  loadMachines();
-});
