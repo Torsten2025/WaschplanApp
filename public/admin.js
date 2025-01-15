@@ -1,364 +1,149 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const addUserForm = document.getElementById('addUserForm');
-  const addUserMessage = document.getElementById('addUserMessage');
+    const addUserForm = document.getElementById('addUserForm');
+    const addMachineForm = document.getElementById('addMachineForm');
+    const resTableBody = document.querySelector('#resTable tbody');
+    const machinesTableBody = document.querySelector('#machinesTable tbody');
+    const usersTableBody = document.querySelector('#usersTable tbody');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-  const addMachineForm = document.getElementById('addMachineForm');
-  const addMachineMessage = document.getElementById('addMachineMessage');
+    let adminKuerzel = null;
 
-  const resTableBody = document.querySelector('#resTable tbody');
-  const machinesTableBody = document.querySelector('#machinesTable tbody');
-  const usersTableBody = document.querySelector('#usersTable tbody');
+    try {
+        adminKuerzel = sessionStorage.getItem('kuerzel');
+    } catch (error) {
+        console.warn('SessionStorage ist nicht verfügbar:', error);
+    }
 
-  const logoutBtn = document.getElementById('logoutBtn');
+    if (adminKuerzel) {
+        const adminGreeting = document.createElement('h2');
+        adminGreeting.textContent = `Angemeldet als: ${adminKuerzel}`;
+        document.body.prepend(adminGreeting);
+    } else {
+        alert('Bitte erneut einloggen.');
+        window.location.href = '/login.html';
+        return;
+    }
 
-  // Admin-Kürzel anzeigen
- let adminKuerzel = null;
+    // Nutzer hinzufügen
+    addUserForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(addUserForm);
+        const kuerzel = formData.get('newUserKuerzel');
 
-try {
-    adminKuerzel = sessionStorage.getItem('kuerzel');
-} catch (error) {
-    console.warn('sessionStorage ist nicht verfügbar:', error);
-}
+        fetch('/api/admin/addUser', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kuerzel }),
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error(`Fehler beim Hinzufügen des Nutzers: ${res.status}`);
+                return res.json();
+            })
+            .then((data) => {
+                alert(data.message);
+                addUserForm.reset();
+                loadUsers();
+            })
+            .catch((err) => console.error('Fehler beim Hinzufügen des Nutzers:', err));
+    });
 
-if (adminKuerzel) {
-    const adminGreeting = document.createElement('h2');
-    adminGreeting.textContent = `Angemeldet als: ${adminKuerzel}`;
-    adminGreeting.style.marginBottom = '20px';
-    document.body.prepend(adminGreeting);
-} else {
-    alert('Bitte erneut einloggen.');
-    window.location.href = '/login.html';
-}
+    // Maschinen hinzufügen
+    addMachineForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(addMachineForm);
+        const name = formData.get('machineName');
+        const type = formData.get('machineType');
 
-  // Nutzer anlegen
-  addUserForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const formData = new FormData(addUserForm);
-    const kuerzel = formData.get('newUserKuerzel');
+        fetch('/api/admin/addMachine', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, type }),
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error(`Fehler beim Hinzufügen der Maschine: ${res.status}`);
+                return res.json();
+            })
+            .then((data) => {
+                alert(data.message);
+                addMachineForm.reset();
+                loadMachines();
+            })
+            .catch((err) => console.error('Fehler beim Hinzufügen der Maschine:', err));
+    });
 
-    fetch('/api/admin/addUser', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ kuerzel }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Fehler beim Hinzufügen des Nutzers: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.error) {
-          addUserMessage.style.color = 'red';
-          addUserMessage.textContent = data.error;
-        } else {
-          addUserMessage.style.color = 'lime';
-          addUserMessage.textContent = data.message;
-          addUserForm.reset();
-          loadUsers();
-        }
-      })
-      .catch((err) => {
-        console.error('Fehler beim Hinzufügen des Nutzers:', err);
-        addUserMessage.style.color = 'red';
-        addUserMessage.textContent = 'Ein Fehler ist aufgetreten.';
-      });
-  });
+    // Nutzer laden
+    function loadUsers() {
+        usersTableBody.innerHTML = '<tr><td colspan="4">Lade Nutzer...</td></tr>';
+        fetch('/api/admin/users')
+            .then((res) => {
+                if (!res.ok) throw new Error(`Fehler beim Laden der Nutzer: ${res.status}`);
+                return res.json();
+            })
+            .then((users) => {
+                usersTableBody.innerHTML = '';
+                users.forEach((user) => {
+                    usersTableBody.innerHTML += `
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${user.kuerzel}</td>
+                            <td><button data-id="${user.id}" class="delete-btn">Löschen</button></td>
+                        </tr>`;
+                });
+            })
+            .catch((err) => console.error('Fehler beim Laden der Nutzer:', err));
+    }
 
-  // Maschine anlegen
-  addMachineForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const formData = new FormData(addMachineForm);
-    const name = formData.get('machineName');
-    const type = formData.get('machineType');
+    // Maschinen laden
+    function loadMachines() {
+        machinesTableBody.innerHTML = '<tr><td colspan="5">Lade Maschinen...</td></tr>';
+        fetch('/api/admin/machines')
+            .then((res) => {
+                if (!res.ok) throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
+                return res.json();
+            })
+            .then((machines) => {
+                machinesTableBody.innerHTML = '';
+                machines.forEach((machine) => {
+                    machinesTableBody.innerHTML += `
+                        <tr>
+                            <td>${machine.id}</td>
+                            <td>${machine.name}</td>
+                            <td>${machine.type}</td>
+                        </tr>`;
+                });
+            })
+            .catch((err) => console.error('Fehler beim Laden der Maschinen:', err));
+    }
 
-    fetch('/api/admin/addMachine', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, type }),
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Fehler beim Hinzufügen der Maschine: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.error) {
-          addMachineMessage.style.color = 'red';
-          addMachineMessage.textContent = data.error;
-        } else {
-          addMachineMessage.style.color = 'lime';
-          addMachineMessage.textContent = data.message;
-          addMachineForm.reset();
-          loadMachines();
-        }
-      })
-      .catch((err) => {
-        console.error('Fehler beim Hinzufügen der Maschine:', err);
-        addMachineMessage.style.color = 'red';
-        addMachineMessage.textContent = 'Ein Fehler ist aufgetreten.';
-      });
-  });
+    // Reservierungen laden
+    function loadReservations() {
+        resTableBody.innerHTML = '<tr><td colspan="5">Lade Reservierungen...</td></tr>';
+        fetch('/api/admin/reservations')
+            .then((res) => {
+                if (!res.ok) throw new Error(`Fehler beim Laden der Reservierungen: ${res.status}`);
+                return res.json();
+            })
+            .then((reservations) => {
+                resTableBody.innerHTML = '';
+                reservations.forEach((res) => {
+                    resTableBody.innerHTML += `
+                        <tr>
+                            <td>${res.id}</td>
+                            <td>${res.start_time}</td>
+                            <td>${res.end_time}</td>
+                        </tr>`;
+                });
+            })
+            .catch((err) => console.error('Fehler beim Laden der Reservierungen:', err));
+    }
 
-  // Nutzer laden
-  function loadUsers() {
-    usersTableBody.innerHTML = '<tr><td colspan="4">Lade Nutzer...</td></tr>';
+    logoutBtn.addEventListener('click', () => {
+        sessionStorage.clear();
+        window.location.href = '/login.html';
+    });
 
-    fetch('/api/admin/users')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Fehler beim Laden der Nutzer: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        usersTableBody.innerHTML = '';
-        data.forEach((user) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${user.ID}</td>
-            <td>${user.Kuerzel}</td>
-            <td><button class="edit-btn" data-id="${user.ID}" data-value="${user.Kuerzel}">✏️</button></td>
-            <td><button class="delete-btn" data-id="${user.ID}">🗑️</button></td>
-          `;
-          usersTableBody.appendChild(tr);
-        });
-        attachUserListeners();
-      })
-      .catch((err) => {
-        console.error('Fehler beim Laden der Nutzer:', err);
-        usersTableBody.innerHTML = '<tr><td colspan="4">Fehler beim Laden der Nutzer.</td></tr>';
-      });
-  }
-
-  // Maschinen laden
-  function loadMachines() {
-    machinesTableBody.innerHTML = '<tr><td colspan="5">Lade Maschinen...</td></tr>';
-
-    fetch('/api/admin/machines')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        machinesTableBody.innerHTML = '';
-        data.forEach((machine) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${machine.ID}</td>
-            <td>${machine.Name}</td>
-            <td>${machine.Typ}</td>
-            <td><button class="edit-btn" data-id="${machine.ID}" data-name="${machine.Name}" data-type="${machine.Typ}">✏️</button></td>
-            <td><button class="delete-btn" data-id="${machine.ID}">🗑️</button></td>
-          `;
-          machinesTableBody.appendChild(tr);
-        });
-        attachMachineListeners();
-      })
-      .catch((err) => {
-        console.error('Fehler beim Laden der Maschinen:', err);
-        machinesTableBody.innerHTML = '<tr><td colspan="5">Fehler beim Laden der Maschinen.</td></tr>';
-      });
-  }
-
-  // Reservierungen laden
-  function loadReservations() {
-    resTableBody.innerHTML = '<tr><td colspan="5">Lade Reservierungen...</td></tr>';
-
-    fetch('/api/admin/reservations')
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Fehler beim Laden der Reservierungen: ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => {
-        console.log('Reservierungen vom Server:', data); // Debug-Ausgabe
-        resTableBody.innerHTML = '';
-        data.forEach((reservation) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${reservation.ID}</td>
-            <td>${reservation.Startzeit}</td>
-            <td>${reservation.Endzeit}</td>
-            <td>${reservation.Email || 'Keine Email'}</td>
-            <td>${reservation.UserKuerzel || 'Kein Nutzer'}</td>
-            <td>${reservation.MachineName || 'Keine Maschine'}</td>
-            <td><button class="delete-btn" data-id="${reservation.ID}">🗑️</button></td>
-          `;
-          resTableBody.appendChild(tr);
-        });
-        attachReservationListeners();
-      })
-      .catch((err) => {
-        console.error('Fehler beim Laden der Reservierungen:', err);
-        resTableBody.innerHTML = '<tr><td colspan="5">Fehler beim Laden der Reservierungen.</td></tr>';
-      });
-  }
-
-  // Logout-Button
-  logoutBtn.addEventListener('click', () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.href = '/login.html';
-  });
-
-  // Daten initial laden
-  loadUsers();
-  loadMachines();
-  loadReservations();
+    // Initial laden
+    loadUsers();
+    loadMachines();
+    loadReservations();
 });
-
-function attachUserListeners() {
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const userId = btn.dataset.id;
-            const currentKuerzel = btn.dataset.value;
-            editUser(userId, currentKuerzel);
-        });
-    });
-
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const userId = btn.dataset.id;
-            deleteItem('users', userId);
-        });
-    });
-}
-
-function attachMachineListeners() {
-  document.querySelectorAll('.edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const machineId = btn.dataset.id;
-      const currentName = btn.dataset.name;
-      const currentType = btn.dataset.type;
-      editMachine(machineId, currentName, currentType);
-    });
-  });
-
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const machineId = btn.dataset.id;
-      deleteItem('machines', machineId);
-    });
-  });
-}
-
-function attachReservationListeners() {
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const reservationId = btn.dataset.id;
-      deleteItem('reservations', reservationId);
-    });
-  });
-}
-
-function deleteItem(type, id) {
-    let url = '';
-    switch (type) {
-        case 'users':
-            url = `/api/admin/users/${id}`;
-            break;
-        case 'machines':
-            url = `/api/admin/machines/${id}`;
-            break;
-        case 'reservations':
-            url = `/api/admin/reservations/${id}`;
-            break;
-        default:
-            alert('Unbekannter Typ beim Löschen.');
-            return;
-    }
-
-    if (confirm('Möchtest du diesen Eintrag wirklich löschen?')) {
-        fetch(url, { method: 'DELETE' })
-            .then(res => {
-                if (!res.ok) throw new Error(`Fehler: ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                if (data.error) {
-                    alert(`Fehler: ${data.error}`);
-                } else {
-                    alert(data.message);
-
-                    // Entferne das Element direkt aus der Tabelle
-                    const row = document.querySelector(`[data-id="${id}"]`).closest('tr');
-                    if (row) row.remove();
-
-                    console.log(`Eintrag mit ID ${id} erfolgreich entfernt.`);
-                }
-            })
-            .catch(err => {
-                console.error(`Fehler beim Löschen von ${type}:`, err);
-                alert('Ein unbekannter Fehler ist aufgetreten.');
-            });
-    }
-}
-
-function editUser(userId, currentKuerzel) {
-    const newKuerzel = prompt('Neues Kürzel eingeben:', currentKuerzel);
-    if (newKuerzel && newKuerzel !== currentKuerzel) {
-        fetch(`/api/admin/users/${userId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kuerzel: newKuerzel }),
-        })
-            .then(res => {
-                if (!res.ok) throw new Error(`Fehler: ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                alert(data.message);
-
-                // Aktualisiere die Zeile direkt in der Tabelle
-                const row = document.querySelector(`[data-id="${userId}"]`).closest('tr');
-                if (row) {
-                    row.children[1].textContent = newKuerzel; // Spalte mit dem Kürzel aktualisieren
-                }
-
-                console.log(`Nutzer mit ID ${userId} erfolgreich bearbeitet.`);
-            })
-            .catch(err => {
-                console.error('Fehler beim Bearbeiten des Nutzers:', err);
-                alert('Ein unbekannter Fehler ist aufgetreten.');
-            });
-    }
-}
-
-function editMachine(machineId, currentName, currentType) {
-    const newName = prompt('Neuen Namen eingeben:', currentName);
-    const newType = prompt('Neuen Typ eingeben (washer/dryer):', currentType);
-
-    if ((newName && newName !== currentName) || (newType && newType !== currentType)) {
-        fetch(`/api/admin/machines/${machineId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: newName, type: newType }),
-        })
-            .then(res => {
-                if (!res.ok) throw new Error(`Fehler: ${res.status}`);
-                return res.json();
-            })
-            .then(data => {
-                alert(data.message);
-
-                // Aktualisiere die Zeile direkt in der Tabelle
-                const row = document.querySelector(`[data-id="${machineId}"]`).closest('tr');
-                if (row) {
-                    row.children[1].textContent = newName; // Spalte mit dem Namen aktualisieren
-                    row.children[2].textContent = newType; // Spalte mit dem Typ aktualisieren
-                }
-
-                console.log(`Maschine mit ID ${machineId} erfolgreich bearbeitet.`);
-            })
-            .catch(err => {
-                console.error('Fehler beim Bearbeiten der Maschine:', err);
-                alert('Ein unbekannter Fehler ist aufgetreten.');
-            });
-    }
-}
-
