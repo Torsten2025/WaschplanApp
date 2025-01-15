@@ -8,6 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const resTable = document.getElementById("resTable");
     const logoutButton = document.getElementById("logoutButton");
 
+    if (!addUserForm || !addMachineForm || !userTable || !machineTable || !resTable || !logoutButton) {
+        console.error("Ein oder mehrere notwendige DOM-Elemente fehlen.");
+        return;
+    }
+
     logoutButton.addEventListener("click", () => {
         console.log("Logout-Button geklickt...");
         sessionStorage.clear();
@@ -23,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then((users) => {
-                console.log("Nutzer erfolgreich geladen:", users);
                 userTable.innerHTML = users
                     .map(
                         (user) => `
@@ -89,7 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 return res.json();
             })
             .then((machines) => {
-                console.log("Maschinen erfolgreich geladen:", machines);
                 machineTable.innerHTML = machines
                     .map(
                         (machine) => `

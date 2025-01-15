@@ -15,35 +15,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const navigationContainer = document.getElementById("navigationContainer");
     const logoutButton = document.getElementById("logoutButton");
 
+    if (!calendarContainer || !navigationContainer || !logoutButton) {
+        console.error("Fehlende Elemente in der DOM-Struktur.");
+        return;
+    }
+
     logoutButton.addEventListener("click", () => {
         console.log("Logout-Button geklickt...");
-        sessionStorage.clear(); // Session-Daten löschen
-        alert("Du wurdest erfolgreich ausgeloggt."); // Bestätigung anzeigen
-        window.location.href = "/login.html"; // Weiterleitung zur Login-Seite
+        sessionStorage.clear();
+        alert("Du wurdest erfolgreich ausgeloggt.");
+        window.location.href = "/login.html";
     });
 
-    console.log("calendarContainer:", calendarContainer);
-    console.log("navigationContainer:", navigationContainer);
-    console.log("logoutButton:", logoutButton);
-
-    if (!navigationContainer || !calendarContainer) {
-        console.error("Fehler: navigationContainer oder calendarContainer wurde nicht gefunden.");
-        return;
-    }
-
     const userKuerzel = sessionStorage.getItem("kuerzel");
-    console.log("Benutzer-Kürzel aus SessionStorage:", userKuerzel);
-
-    if (userKuerzel) {
-        const userGreeting = document.createElement("h2");
-        userGreeting.textContent = `Willkommen, ${userKuerzel}!`;
-        document.body.prepend(userGreeting);
-        console.log("Begrüßung hinzugefügt:", userGreeting.textContent);
-    } else {
+    if (!userKuerzel) {
         alert("Bitte erneut einloggen!");
-        window.location.href = "login.html";
+        window.location.href = "/login.html";
         return;
     }
+
+    const userGreeting = document.createElement("h2");
+    userGreeting.textContent = `Willkommen, ${userKuerzel}!`;
+    document.body.prepend(userGreeting);
 
     function getNextTwoWeeks() {
         const days = [];
@@ -59,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function createNavigation() {
-        console.log("Navigation wird erstellt...");
         navigationContainer.innerHTML = `
             <button id="prevMonth" class="nav-button">&larr; Vorheriger Monat</button>
             <h2 id="currentMonthYear">${dayjs(new Date(currentYear, currentMonth)).format("MMMM YYYY")}</h2>
@@ -67,11 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         document.getElementById("prevMonth").addEventListener("click", () => changeMonth(-1));
         document.getElementById("nextMonth").addEventListener("click", () => changeMonth(1));
-        console.log("Navigation erstellt.");
     }
 
     function changeMonth(direction) {
-        console.log("Monat ändern, Richtung:", direction);
         currentMonth += direction;
         if (currentMonth < 0) {
             currentMonth = 11;
@@ -80,68 +70,37 @@ document.addEventListener("DOMContentLoaded", () => {
             currentMonth = 0;
             currentYear++;
         }
-        console.log("Neues Jahr:", currentYear, "Neuer Monat:", currentMonth);
         buildCalendars();
     }
 
     function loadMachines() {
-        console.log("Maschinen werden geladen...");
         fetch("/api/machines")
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
                 return res.json();
             })
             .then((data) => {
-                console.log("Maschinen erfolgreich geladen:", data);
                 allMachines = data.map((machine) => ({
                     id: machine.id,
                     name: machine.name,
                     type: machine.type,
                 }));
                 buildCalendars();
-                loadLogs();
             })
             .catch((err) => console.error("Fehler beim Laden der Maschinen:", err.message));
     }
 
-    function loadLogs() {
-        console.log("Logs werden geladen...");
-        fetch("/api/logs")
-            .then((res) => {
-                if (!res.ok) throw new Error(`Fehler beim Laden der Logs: ${res.status}`);
-                return res.json();
-            })
-            .then((logs) => {
-                console.log("Logs erfolgreich geladen:", logs);
-                allMachines.forEach((machine) => {
-                    const logContainer = document.getElementById(`log-${machine.id}`);
-                    if (logContainer) {
-                        const machineLogs = logs.filter((log) => log.machine_id === machine.id);
-                        logContainer.innerHTML = machineLogs
-                            .map((log) => `<p>${log.datum}: ${log.beschreibung} (${log.status})</p>`)
-                            .join("");
-                    }
-                });
-            })
-            .catch((err) => console.error("Fehler beim Laden der Logs:", err.message));
-    }
-
     function buildCalendars() {
-        console.log("Kalender wird erstellt...");
         calendarContainer.innerHTML = "";
         document.getElementById("currentMonthYear").textContent = dayjs(new Date(currentYear, currentMonth)).format("MMMM YYYY");
+
         const washerGroup = document.createElement("div");
         washerGroup.classList.add("washer-group");
+
         const dryerGroup = document.createElement("div");
         dryerGroup.classList.add("dryer-group");
 
         allMachines.forEach((machine) => {
-            console.log("Kalender für Maschine:", machine);
-            if (!machine.type) {
-                console.error(`Maschine hat keinen Typ:`, machine);
-                return;
-            }
-
             const calendarDiv = document.createElement("div");
             calendarDiv.classList.add("machine-calendar");
             calendarDiv.innerHTML = `
@@ -154,20 +113,78 @@ document.addEventListener("DOMContentLoaded", () => {
             } else if (machine.type.toLowerCase().includes("trocknungsraum")) {
                 dryerGroup.appendChild(calendarDiv);
             }
+
+            loadBookings(machine);
         });
 
         calendarContainer.appendChild(washerGroup);
         calendarContainer.appendChild(dryerGroup);
-        console.log("Kalender erfolgreich erstellt.");
+    }
+
+    function loadBookings(machine) {
+        fetch(`/api/bookings`)
+            .then((res) => {
+                if (!res.ok) throw new Error(`Fehler beim Laden der Buchungen: ${res.status}`);
+                return res.json();
+            })
+            .then((bookings) => {
+                const filteredBookings = bookings.filter(
+                    (b) => b.machine_name === machine.name && dayjs(b.start_time).month() === currentMonth
+                );
+                renderCalendar(machine.id, filteredBookings);
+            })
+            .catch((err) => console.error("Fehler beim Laden der Buchungen:", err.message));
+    }
+
+    function renderCalendar(machineId, bookings) {
+        const calendarElement = document.getElementById(`calendar-${machineId}`);
+        calendarElement.innerHTML = "";
+
+        getNextTwoWeeks().forEach(({ date, day }) => {
+            const dayCell = document.createElement("div");
+            dayCell.classList.add("day-cell");
+
+            const dateTitle = document.createElement("div");
+            dateTitle.textContent = `${day}, ${dayjs(date).format("DD.MM.YYYY")}`;
+            dateTitle.classList.add("date-title");
+            dayCell.appendChild(dateTitle);
+
+            TIME_SLOTS.forEach((slot) => {
+                const slotButton = document.createElement("button");
+                const slotStartTime = `${date}T${slot.split("-")[0]}`;
+
+                const isBooked = bookings.some(
+                    (b) => dayjs(b.start_time).format("YYYY-MM-DDTHH:mm") === slotStartTime
+                );
+
+                slotButton.classList.add("slot-button", isBooked ? "slot-booked" : "slot-free");
+
+                if (isBooked) {
+                    const booking = bookings.find(
+                        (b) => dayjs(b.start_time).format("YYYY-MM-DDTHH:mm") === slotStartTime
+                    );
+
+                    if (booking.user_kuerzel === userKuerzel) {
+                        slotButton.textContent = "Stornieren (Meine)";
+                        slotButton.classList.add("my-booking");
+                        slotButton.addEventListener("click", () => cancelBooking(booking.id));
+                    } else {
+                        slotButton.textContent = `Gebucht von ${booking.user_kuerzel}`;
+                        slotButton.disabled = true;
+                    }
+                } else {
+                    slotButton.textContent = slot;
+                    slotButton.addEventListener("click", () => bookSlot(machineId, slotStartTime));
+                }
+
+                dayCell.appendChild(slotButton);
+            });
+
+            calendarElement.appendChild(dayCell);
+        });
     }
 
     function bookSlot(machineId, startTime) {
-        console.log("Slot wird gebucht für Maschine:", machineId, "Startzeit:", startTime);
-        if (dayjs(startTime).day() === 0) {
-            alert("Buchungen an Sonntagen sind nicht erlaubt.");
-            return;
-        }
-
         const endTime = dayjs(startTime).add(5, "hour").format("YYYY-MM-DDTHH:mm:ss");
         const machine = allMachines.find((m) => m.id === machineId);
 
@@ -192,43 +209,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!res.ok) throw new Error(`Fehler: ${res.status}`);
                 return res.json();
             })
-            .then((data) => {
-                if (data.error) {
-                    alert(`Fehler: ${data.error}`);
-                } else {
-                    alert("Buchung erfolgreich!");
-                    buildCalendars();
-                }
-            })
-            .catch((err) => {
-                console.error("Fehler bei der Buchung:", err);
-                alert("Ein unbekannter Fehler ist aufgetreten.");
-            });
+            .then(() => buildCalendars())
+            .catch((err) => console.error("Fehler bei der Buchung:", err));
     }
 
     function cancelBooking(bookingId) {
-        console.log("Buchung wird storniert:", bookingId);
-
         fetch(`/api/user/deleteBooking/${bookingId}`, { method: "DELETE" })
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler: ${res.status}`);
                 return res.json();
             })
-            .then((data) => {
-                if (data.error) {
-                    alert(`Fehler: ${data.error}`);
-                } else {
-                    alert("Buchung erfolgreich storniert!");
-                    buildCalendars();
-                }
-            })
-            .catch((err) => {
-                console.error("Fehler beim Stornieren der Buchung:", err);
-                alert("Ein unbekannter Fehler ist aufgetreten.");
-            });
+            .then(() => buildCalendars())
+            .catch((err) => console.error("Fehler beim Stornieren der Buchung:", err));
     }
 
-    console.log("Initialisiere Navigation und lade Maschinen...");
     createNavigation();
     loadMachines();
 });

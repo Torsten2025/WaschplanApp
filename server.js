@@ -49,220 +49,183 @@ function dbRun(sql, params = []) {
     });
 }
 
-// API: Login
-app.post('/api/login', async (req, res) => {
-    const { kuerzel, password } = req.body;
-
-    try {
-        const user = await dbGet(`SELECT * FROM users WHERE kuerzel = ?`, [kuerzel]);
-
-        if (!user) {
-            return res.status(404).json({ error: 'Benutzer nicht gefunden.' });
-        }
-
-        if (kuerzel === 'Admin' && password === 'Admin') {
-            return res.json({ message: 'Login erfolgreich', role: 'admin', kuerzel });
-        } else if (!password && kuerzel !== 'Admin') {
-            return res.json({ message: 'Login erfolgreich', role: 'user', kuerzel, userId: user.id });
-        } else {
-            return res.status(401).json({ error: 'Ungültige Anmeldedaten.' });
-        }
-    } catch (err) {
-        console.error('Fehler beim Login:', err.message);
-        res.status(500).json({ error: 'Interner Serverfehler.' });
-    }
-});
-
-// API: Nutzer hinzufügen
-app.post('/api/admin/addUser', async (req, res) => {
-    const { kuerzel } = req.body;
-
-    if (!kuerzel) {
-        return res.status(400).json({ error: 'Kürzel ist erforderlich.' });
-    }
-
-    try {
-        const result = await dbRun(`INSERT INTO users (kuerzel) VALUES (?)`, [kuerzel]);
-        res.json({ message: 'Nutzer erfolgreich hinzugefügt.', userId: result.lastID });
-    } catch (err) {
-        console.error('Fehler beim Hinzufügen des Nutzers:', err.message);
-        res.status(500).json({ error: 'Fehler beim Hinzufügen des Nutzers.' });
-    }
-});
-
-// API: Nutzer bearbeiten
-app.put('/api/admin/users/:id', async (req, res) => {
-    const userId = parseInt(req.params.id);
-    const { kuerzel } = req.body;
-
-    if (!kuerzel) {
-        return res.status(400).json({ error: 'Kürzel darf nicht leer sein.' });
-    }
-
-    try {
-        const result = await dbRun(`UPDATE users SET kuerzel = ? WHERE id = ?`, [kuerzel, userId]);
-
-        if (result.changes === 0) {
-            return res.status(404).json({ error: 'Nutzer nicht gefunden.' });
-        }
-
-        res.json({ message: 'Nutzer erfolgreich bearbeitet.' });
-    } catch (err) {
-        console.error('Fehler beim Bearbeiten des Nutzers:', err.message);
-        res.status(500).json({ error: 'Fehler beim Bearbeiten des Nutzers.' });
-    }
-});
-
-// API: Nutzer löschen
-app.delete('/api/admin/users/:id', async (req, res) => {
-    const userId = parseInt(req.params.id);
-
-    try {
-        const result = await dbRun(`DELETE FROM users WHERE id = ?`, [userId]);
-
-        if (result.changes === 0) {
-            return res.status(404).json({ error: 'Nutzer nicht gefunden.' });
-        }
-
-        res.json({ message: 'Nutzer erfolgreich gelöscht.' });
-    } catch (err) {
-        console.error('Fehler beim Löschen des Nutzers:', err.message);
-        res.status(500).json({ error: 'Fehler beim Löschen des Nutzers.' });
-    }
-});
-
-// API: Alle Nutzer anzeigen
+// API: Admin - Nutzerverwaltung
 app.get('/api/admin/users', async (req, res) => {
     try {
-        const users = await dbAll(`SELECT * FROM users`);
+        const users = await dbAll('SELECT * FROM users');
         res.json(users);
     } catch (err) {
-        console.error('Fehler beim Laden der Nutzer:', err.message);
+        console.error('Fehler beim Laden der Nutzer:', err);
         res.status(500).json({ error: 'Fehler beim Laden der Nutzer.' });
     }
 });
 
-// API: Alle Maschinen anzeigen (Adminbereich)
+app.post('/api/admin/addUser', async (req, res) => {
+    const { kuerzel } = req.body;
+    if (!kuerzel) {
+        return res.status(400).json({ error: 'Kürzel ist erforderlich.' });
+    }
+    try {
+        const result = await dbRun('INSERT INTO users (kuerzel) VALUES (?)', [kuerzel]);
+        res.json({ message: 'Nutzer erfolgreich hinzugefügt.', userId: result.lastID });
+    } catch (err) {
+        console.error('Fehler beim Hinzufügen des Nutzers:', err);
+        res.status(500).json({ error: 'Fehler beim Hinzufügen des Nutzers.' });
+    }
+});
+
+app.put('/api/admin/users/:id', async (req, res) => {
+    const userId = parseInt(req.params.id);
+    const { kuerzel } = req.body;
+    if (!kuerzel) {
+        return res.status(400).json({ error: 'Kürzel ist erforderlich.' });
+    }
+    try {
+        const result = await dbRun('UPDATE users SET kuerzel = ? WHERE id = ?', [kuerzel, userId]);
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Nutzer nicht gefunden.' });
+        }
+        res.json({ message: 'Nutzer erfolgreich bearbeitet.' });
+    } catch (err) {
+        console.error('Fehler beim Bearbeiten des Nutzers:', err);
+        res.status(500).json({ error: 'Fehler beim Bearbeiten des Nutzers.' });
+    }
+});
+
+app.delete('/api/admin/users/:id', async (req, res) => {
+    const userId = parseInt(req.params.id);
+    try {
+        const result = await dbRun('DELETE FROM users WHERE id = ?', [userId]);
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Nutzer nicht gefunden.' });
+        }
+        res.json({ message: 'Nutzer erfolgreich gelöscht.' });
+    } catch (err) {
+        console.error('Fehler beim Löschen des Nutzers:', err);
+        res.status(500).json({ error: 'Fehler beim Löschen des Nutzers.' });
+    }
+});
+
+// API: Admin - Maschinenverwaltung
 app.get('/api/admin/machines', async (req, res) => {
     try {
-        const machines = await dbAll(`SELECT * FROM machines`);
+        const machines = await dbAll('SELECT * FROM machines');
         res.json(machines);
     } catch (err) {
-        console.error('Fehler beim Laden der Maschinen:', err.message);
+        console.error('Fehler beim Laden der Maschinen:', err);
         res.status(500).json({ error: 'Fehler beim Laden der Maschinen.' });
     }
 });
 
-// API: Maschine hinzufügen
 app.post('/api/admin/addMachine', async (req, res) => {
     const { name, type } = req.body;
-
     if (!name || !type) {
         return res.status(400).json({ error: 'Name und Typ sind erforderlich.' });
     }
-
     try {
-        const result = await dbRun(`INSERT INTO machines (name, type) VALUES (?, ?)`, [name, type]);
+        const result = await dbRun('INSERT INTO machines (name, type) VALUES (?, ?)', [name, type]);
         res.json({ message: 'Maschine erfolgreich hinzugefügt.', machineId: result.lastID });
     } catch (err) {
-        console.error('Fehler beim Hinzufügen der Maschine:', err.message);
+        console.error('Fehler beim Hinzufügen der Maschine:', err);
         res.status(500).json({ error: 'Fehler beim Hinzufügen der Maschine.' });
     }
 });
 
-// API: Reservierungen anzeigen
-app.get('/api/admin/reservations', async (req, res) => {
-    try {
-        const reservations = await dbAll(`SELECT * FROM bookings`);
-        res.json(reservations);
-    } catch (err) {
-        console.error('Fehler beim Laden der Reservierungen:', err.message);
-        res.status(500).json({ error: 'Fehler beim Laden der Reservierungen.' });
+app.put('/api/admin/machines/:id', async (req, res) => {
+    const machineId = parseInt(req.params.id);
+    const { name, type } = req.body;
+    if (!name || !type) {
+        return res.status(400).json({ error: 'Name und Typ sind erforderlich.' });
     }
-});
-
-// API: Reservierung löschen
-app.delete('/api/admin/reservations/:id', async (req, res) => {
-    const reservationId = parseInt(req.params.id);
-
     try {
-        const result = await dbRun(`DELETE FROM bookings WHERE id = ?`, [reservationId]);
-
+        const result = await dbRun('UPDATE machines SET name = ?, type = ? WHERE id = ?', [name, type, machineId]);
         if (result.changes === 0) {
-            return res.status(404).json({ error: 'Reservierung nicht gefunden.' });
+            return res.status(404).json({ error: 'Maschine nicht gefunden.' });
         }
-
-        res.json({ message: 'Reservierung erfolgreich gelöscht.' });
+        res.json({ message: 'Maschine erfolgreich bearbeitet.' });
     } catch (err) {
-        console.error('Fehler beim Löschen der Reservierung:', err.message);
-        res.status(500).json({ error: 'Fehler beim Löschen der Reservierung.' });
+        console.error('Fehler beim Bearbeiten der Maschine:', err);
+        res.status(500).json({ error: 'Fehler beim Bearbeiten der Maschine.' });
     }
 });
 
-// API: Buchung hinzufügen
-app.post('/api/admin/addBooking', async (req, res) => {
-    const { start, end, userKuerzel, machineName } = req.body;
-
+app.delete('/api/admin/machines/:id', async (req, res) => {
+    const machineId = parseInt(req.params.id);
     try {
-        const startTime = dayjs(start);
-        const endTime = dayjs(end);
-
-        if (startTime.day() === 0) {
-            return res.status(400).json({ error: 'Buchungen an Sonntagen sind nicht erlaubt.' });
-        }
-
-        const result = await dbRun(
-            `INSERT INTO bookings (start_time, end_time, user_kuerzel, machine_name) VALUES (?, ?, ?, ?)`,
-            [start, end, userKuerzel, machineName]
-        );
-
-        res.json({ message: 'Buchung erfolgreich hinzugefügt.', bookingId: result.lastID });
-    } catch (err) {
-        console.error('Fehler beim Hinzufügen der Buchung:', err.message);
-        res.status(500).json({ error: 'Fehler beim Hinzufügen der Buchung.' });
-    }
-});
-
-// API: Buchung löschen
-app.delete('/api/user/deleteBooking/:id', async (req, res) => {
-    const bookingId = parseInt(req.params.id);
-
-    try {
-        const result = await dbRun(`DELETE FROM bookings WHERE id = ?`, [bookingId]);
-
+        const result = await dbRun('DELETE FROM machines WHERE id = ?', [machineId]);
         if (result.changes === 0) {
-            return res.status(404).json({ error: 'Buchung nicht gefunden.' });
+            return res.status(404).json({ error: 'Maschine nicht gefunden.' });
         }
-
-        res.json({ message: 'Buchung erfolgreich gelöscht.' });
+        res.json({ message: 'Maschine erfolgreich gelöscht.' });
     } catch (err) {
-        console.error('Fehler beim Löschen der Buchung:', err.message);
-        res.status(500).json({ error: 'Fehler beim Löschen der Buchung.' });
+        console.error('Fehler beim Löschen der Maschine:', err);
+        res.status(500).json({ error: 'Fehler beim Löschen der Maschine.' });
     }
 });
 
-// API: Alle Buchungen anzeigen
+// API: Buchungen
 app.get('/api/bookings', async (req, res) => {
     try {
-        const bookings = await dbAll(`SELECT * FROM bookings`);
+        const bookings = await dbAll('SELECT * FROM bookings');
         res.json(bookings);
     } catch (err) {
-        console.error('Fehler beim Laden der Buchungen:', err.message);
+        console.error('Fehler beim Laden der Buchungen:', err);
         res.status(500).json({ error: 'Fehler beim Laden der Buchungen.' });
     }
 });
 
-// API: Alle Logs anzeigen
+app.post('/api/admin/addBooking', async (req, res) => {
+    const { start, end, userKuerzel, machineName } = req.body;
+    if (!start || !end || !userKuerzel || !machineName) {
+        return res.status(400).json({ error: 'Alle Felder sind erforderlich.' });
+    }
+    try {
+        const result = await dbRun(
+            'INSERT INTO bookings (start_time, end_time, user_kuerzel, machine_name) VALUES (?, ?, ?, ?)',
+            [start, end, userKuerzel, machineName]
+        );
+        res.json({ message: 'Buchung erfolgreich hinzugefügt.', bookingId: result.lastID });
+    } catch (err) {
+        console.error('Fehler beim Hinzufügen der Buchung:', err);
+        res.status(500).json({ error: 'Fehler beim Hinzufügen der Buchung.' });
+    }
+});
+
+app.delete('/api/user/deleteBooking/:id', async (req, res) => {
+    const bookingId = parseInt(req.params.id);
+    try {
+        const result = await dbRun('DELETE FROM bookings WHERE id = ?', [bookingId]);
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Buchung nicht gefunden.' });
+        }
+        res.json({ message: 'Buchung erfolgreich gelöscht.' });
+    } catch (err) {
+        console.error('Fehler beim Löschen der Buchung:', err);
+        res.status(500).json({ error: 'Fehler beim Löschen der Buchung.' });
+    }
+});
+
+// API: Logs
 app.get('/api/logs', async (req, res) => {
     try {
-        const logs = await dbAll(`SELECT * FROM logs`);
+        const logs = await dbAll('SELECT * FROM logs');
         res.json(logs);
     } catch (err) {
-        console.error('Fehler beim Laden der Logs:', err.message);
+        console.error('Fehler beim Laden der Logs:', err);
         res.status(500).json({ error: 'Fehler beim Laden der Logs.' });
     }
 });
 
-// Server starten
+app.get('/api/logs/:machineId', async (req, res) => {
+    const machineId = parseInt(req.params.machineId);
+    try {
+        const logs = await dbAll('SELECT * FROM logs WHERE machine_id = ?', [machineId]);
+        res.json(logs);
+    } catch (err) {
+        console.error('Fehler beim Laden der Logs für die Maschine:', err);
+        res.status(500).json({ error: 'Fehler beim Laden der Logs für die Maschine.' });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server läuft auf Port ${PORT}`));
