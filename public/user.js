@@ -1,27 +1,41 @@
+// Liste der Variablen und Konstanten (Schreibweisenübersicht):
+// - TIME_SLOTS
+// - calendarContainer
+// - navigationContainer
+// - logoutButton
+// - API-Endpunkte: 
+//   1. /api/machines (GET)
+//   2. /api/bookings (GET)
+//   3. /api/admin/addBooking (POST)
+//   4. /api/user/deleteBooking/:id (DELETE)
+
+// Liste der Funktionen:
+// - getNextTwoWeeks: Gibt die nächsten 14 Tage zurück.
+// - createNavigation: Erstellt die Monatsnavigation.
+// - changeMonth: Wechselt zwischen Monaten.
+// - loadMachines: Lädt Maschinen aus der API.
+// - buildCalendars: Baut die Kalenderstruktur auf.
+// - loadBookings: Lädt Buchungen aus der API.
+// - renderCalendar: Rendert den Kalender für eine Maschine.
+// - bookSlot: Erstellt eine neue Buchung.
+// - cancelBooking: Storniert eine bestehende Buchung.
+
 document.addEventListener("DOMContentLoaded", () => {
-    console.log("JavaScript geladen und DOMContentLoaded ausgeführt.");
+    console.log("1. JavaScript geladen und DOMContentLoaded ausgeführt.");
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get("userId");
-    console.log("Benutzer-ID aus URL:", userId);
-
-    let allMachines = [];
-    let currentYear = dayjs().year();
-    let currentMonth = dayjs().month();
-    console.log("Aktuelles Jahr:", currentYear, "Aktueller Monat:", currentMonth);
-
+    // 1. Variablen initialisieren
     const TIME_SLOTS = ["07:00-12:00", "12:00-17:00", "17:00-21:00"];
     const calendarContainer = document.getElementById("machineCalendars");
     const navigationContainer = document.getElementById("navigationContainer");
     const logoutButton = document.getElementById("logoutButton");
 
     if (!calendarContainer || !navigationContainer || !logoutButton) {
-        console.error("Fehlende Elemente in der DOM-Struktur.");
+        console.error("Ein oder mehrere notwendige DOM-Elemente fehlen.");
         return;
     }
 
     logoutButton.addEventListener("click", () => {
-        console.log("Logout-Button geklickt...");
+        console.log("2. Logout-Button geklickt...");
         sessionStorage.clear();
         alert("Du wurdest erfolgreich ausgeloggt.");
         window.location.href = "/login.html";
@@ -38,7 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
     userGreeting.textContent = `Willkommen, ${userKuerzel}!`;
     document.body.prepend(userGreeting);
 
+    // 2. Funktionen definieren
+
+    // Funktion 1: Gibt die nächsten 14 Tage zurück
     function getNextTwoWeeks() {
+        console.log("3. Nächste zwei Wochen berechnen...");
         const days = [];
         const today = dayjs();
         for (let i = 0; i < 14; i++) {
@@ -51,17 +69,22 @@ document.addEventListener("DOMContentLoaded", () => {
         return days;
     }
 
+    // Funktion 2: Erstellt die Monatsnavigation
     function createNavigation() {
+        console.log("4. Navigation wird erstellt...");
         navigationContainer.innerHTML = `
             <button id="prevMonth" class="nav-button">&larr; Vorheriger Monat</button>
-            <h2 id="currentMonthYear">${dayjs(new Date(currentYear, currentMonth)).format("MMMM YYYY")}</h2>
+            <h2 id="currentMonthYear">${dayjs().format("MMMM YYYY")}</h2>
             <button id="nextMonth" class="nav-button">Nächster Monat &rarr;</button>
         `;
         document.getElementById("prevMonth").addEventListener("click", () => changeMonth(-1));
         document.getElementById("nextMonth").addEventListener("click", () => changeMonth(1));
+        console.log("5. Navigation erstellt.");
     }
 
+    // Funktion 3: Ändert den aktuellen Monat
     function changeMonth(direction) {
+        console.log("6. Monat wechseln, Richtung:", direction);
         currentMonth += direction;
         if (currentMonth < 0) {
             currentMonth = 11;
@@ -73,8 +96,10 @@ document.addEventListener("DOMContentLoaded", () => {
         buildCalendars();
     }
 
+    // Funktion 4: Lädt Maschinen aus der API
     function loadMachines() {
-        fetch("/api/machines")
+        console.log("7. Maschinen werden geladen...");
+        fetch("/api/machines") // API: 1
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
                 return res.json();
@@ -90,7 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((err) => console.error("Fehler beim Laden der Maschinen:", err.message));
     }
 
+    // Funktion 5: Baut die Kalenderstruktur auf
     function buildCalendars() {
+        console.log("8. Kalender wird erstellt...");
         calendarContainer.innerHTML = "";
         document.getElementById("currentMonthYear").textContent = dayjs(new Date(currentYear, currentMonth)).format("MMMM YYYY");
 
@@ -121,8 +148,10 @@ document.addEventListener("DOMContentLoaded", () => {
         calendarContainer.appendChild(dryerGroup);
     }
 
+    // Funktion 6: Lädt Buchungen aus der API
     function loadBookings(machine) {
-        fetch(`/api/bookings`)
+        console.log("9. Buchungen werden geladen für Maschine:", machine.name);
+        fetch("/api/bookings") // API: 2
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler beim Laden der Buchungen: ${res.status}`);
                 return res.json();
@@ -136,7 +165,9 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((err) => console.error("Fehler beim Laden der Buchungen:", err.message));
     }
 
+// Funktion 7: Rendert den Kalender für eine Maschine
     function renderCalendar(machineId, bookings) {
+        console.log("10. Kalender wird gerendert für Maschine:", machineId);
         const calendarElement = document.getElementById(`calendar-${machineId}`);
         calendarElement.innerHTML = "";
 
@@ -184,7 +215,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // Funktion 8: Erstellt eine neue Buchung
     function bookSlot(machineId, startTime) {
+        console.log("11. Slot wird gebucht für Maschine:", machineId, "Startzeit:", startTime);
         const endTime = dayjs(startTime).add(5, "hour").format("YYYY-MM-DDTHH:mm:ss");
         const machine = allMachines.find((m) => m.id === machineId);
 
@@ -209,20 +242,31 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!res.ok) throw new Error(`Fehler: ${res.status}`);
                 return res.json();
             })
-            .then(() => buildCalendars())
+            .then(() => {
+                alert("Buchung erfolgreich!");
+                buildCalendars();
+            })
             .catch((err) => console.error("Fehler bei der Buchung:", err));
     }
 
+    // Funktion 9: Storniert eine bestehende Buchung
     function cancelBooking(bookingId) {
+        console.log("12. Buchung wird storniert:", bookingId);
+
         fetch(`/api/user/deleteBooking/${bookingId}`, { method: "DELETE" })
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler: ${res.status}`);
                 return res.json();
             })
-            .then(() => buildCalendars())
+            .then(() => {
+                alert("Buchung erfolgreich storniert!");
+                buildCalendars();
+            })
             .catch((err) => console.error("Fehler beim Stornieren der Buchung:", err));
     }
 
+    // 3. Initialisierung
+    console.log("13. Initialisiere Navigation und lade Maschinen...");
     createNavigation();
     loadMachines();
 });
