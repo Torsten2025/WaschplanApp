@@ -54,6 +54,19 @@ function loadMachines() {
         })
         .catch((err) => console.error("Fehler beim Laden der Maschinen:", err.message));
 }
+// Funktion: Nächste zwei Wochen berechnen
+function getNextTwoWeeks() {
+    const days = [];
+    const today = dayjs();
+    for (let i = 0; i < 14; i++) {
+        const date = today.add(i, 'day');
+        days.push({
+            date: date.format("YYYY-MM-DD"),
+            day: date.format("dddd"), // z. B. Montag, Dienstag
+        });
+    }
+    return days;
+}
 
 function buildCalendars() {
     console.log("Kalender wird erstellt...");
