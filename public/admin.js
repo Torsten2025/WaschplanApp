@@ -1,28 +1,57 @@
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("JavaScript geladen und DOMContentLoaded ausgeführt.");
+// Liste der Variablen und Konstanten (Schreibweisenübersicht):
+// - addUserForm
+// - addMachineForm
+// - userTable
+// - machineTable
+// - resTable
+// - logoutButton
+// - API-Endpunkte: 
+//   1. /api/admin/users (GET)
+//   2. /api/admin/addUser (POST)
+//   3. /api/admin/users/:id (PUT)
+//   4. /api/admin/users/:id (DELETE)
+//   5. /api/admin/machines (GET)
+//   6. /api/admin/addMachine (POST)
+//   7. /api/admin/machines/:id (PUT)
+//   8. /api/admin/machines/:id (DELETE)
 
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("1. JavaScript geladen und DOMContentLoaded ausgeführt.");
+
+    // 1. Variablen initialisieren
     const addUserForm = document.getElementById("addUserForm");
     const addMachineForm = document.getElementById("addMachineForm");
     const userTable = document.getElementById("userTable");
     const machineTable = document.getElementById("machineTable");
     const resTable = document.getElementById("resTable");
     const logoutButton = document.getElementById("logoutButton");
-
+	
+	console.log("1. DOM-Elemente geprüft:", {
+        addUserForm,
+        addMachineForm,
+        userTable,
+        machineTable,
+        resTable,
+        logoutButton
+    });
+	
     if (!addUserForm || !addMachineForm || !userTable || !machineTable || !resTable || !logoutButton) {
         console.error("Ein oder mehrere notwendige DOM-Elemente fehlen.");
         return;
     }
 
+    // 2. Logout-Button-Event hinzufügen
     logoutButton.addEventListener("click", () => {
-        console.log("Logout-Button geklickt...");
+        console.log("2. Logout-Button geklickt...");
         sessionStorage.clear();
         alert("Du wurdest erfolgreich ausgeloggt.");
         window.location.href = "/login.html";
     });
 
+    // 3. Nutzer laden
     function loadUsers() {
-        console.log("Nutzer werden geladen...");
-        fetch("/api/admin/users")
+        console.log("3. Nutzer werden geladen...");
+        fetch("/api/admin/users") // API: 1
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler beim Laden der Nutzer: ${res.status}`);
                 return res.json();
@@ -47,6 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((err) => console.error("Fehler beim Laden der Nutzer:", err));
     }
 
+    // 4. Nutzer-Event-Listener hinzufügen
     function attachUserListeners() {
         document.querySelectorAll(".edit-user").forEach((button) => {
             button.addEventListener("click", () => {
@@ -54,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const currentKuerzel = button.dataset.kuerzel;
                 const newKuerzel = prompt("Neues Kürzel eingeben:", currentKuerzel);
                 if (newKuerzel && newKuerzel !== currentKuerzel) {
-                    fetch(`/api/admin/users/${userId}`, {
+                    fetch(`/api/admin/users/${userId}`, { // API: 3
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ kuerzel: newKuerzel }),
@@ -73,7 +103,7 @@ document.addEventListener("DOMContentLoaded", () => {
             button.addEventListener("click", () => {
                 const userId = button.dataset.id;
                 if (confirm("Möchtest du diesen Nutzer wirklich löschen?")) {
-                    fetch(`/api/admin/users/${userId}`, { method: "DELETE" })
+                    fetch(`/api/admin/users/${userId}`, { method: "DELETE" }) // API: 4
                         .then((res) => {
                             if (!res.ok) throw new Error(`Fehler beim Löschen des Nutzers: ${res.status}`);
                             return res.json();
@@ -85,9 +115,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // 5. Maschinen laden
     function loadMachines() {
-        console.log("Maschinen werden geladen...");
-        fetch("/api/admin/machines")
+        console.log("5. Maschinen werden geladen...");
+        fetch("/api/admin/machines") // API: 5
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
                 return res.json();
@@ -113,6 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((err) => console.error("Fehler beim Laden der Maschinen:", err));
     }
 
+    // 6. Maschinen-Event-Listener hinzufügen
     function attachMachineListeners() {
         document.querySelectorAll(".edit-machine").forEach((button) => {
             button.addEventListener("click", () => {
@@ -123,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const newType = prompt("Neuen Typ eingeben (z. B. Waschmaschine oder Trocknungsraum):", currentType);
 
                 if ((newName && newName !== currentName) || (newType && newType !== currentType)) {
-                    fetch(`/api/admin/machines/${machineId}`, {
+                    fetch(`/api/admin/machines/${machineId}`, { // API: 7
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ name: newName, type: newType }),
@@ -142,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
             button.addEventListener("click", () => {
                 const machineId = button.dataset.id;
                 if (confirm("Möchtest du diese Maschine wirklich löschen?")) {
-                    fetch(`/api/admin/machines/${machineId}`, { method: "DELETE" })
+                    fetch(`/api/admin/machines/${machineId}`, { method: "DELETE" }) // API: 8
                         .then((res) => {
                             if (!res.ok) throw new Error(`Fehler beim Löschen der Maschine: ${res.status}`);
                             return res.json();
@@ -154,51 +186,29 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    addUserForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const formData = new FormData(addUserForm);
-        const kuerzel = formData.get("kuerzel");
+    // 7. Nutzer hinzufügen
+       addUserForm.addEventListener("submit", (e) => {
+       e.preventDefault();
+       const formData = new FormData(addUserForm);
+       const kuerzel = formData.get("newUserKuerzel");
 
-        fetch("/api/admin/addUser", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ kuerzel }),
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error(`Fehler beim Hinzufügen des Nutzers: ${res.status}`);
-                return res.json();
-            })
-            .then(() => {
-                alert("Nutzer erfolgreich hinzugefügt.");
-                addUserForm.reset();
-                loadUsers();
-            })
-            .catch((err) => console.error("Fehler beim Hinzufügen des Nutzers:", err));
-    });
+       console.log("7. Nutzer wird hinzugefügt:", { kuerzel });
 
-    addMachineForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const formData = new FormData(addMachineForm);
-        const name = formData.get("name");
-        const type = formData.get("type");
-
-        fetch("/api/admin/addMachine", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, type }),
-        })
-            .then((res) => {
-                if (!res.ok) throw new Error(`Fehler beim Hinzufügen der Maschine: ${res.status}`);
-                return res.json();
-            })
-            .then(() => {
-                alert("Maschine erfolgreich hinzugefügt.");
-                addMachineForm.reset();
-                loadMachines();
-            })
-            .catch((err) => console.error("Fehler beim Hinzufügen der Maschine:", err));
-    });
-
-    loadUsers();
-    loadMachines();
-});
+       fetch("/api/admin/addUser", { // API: 2
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ kuerzel }),
+       })
+           .then((res) => {
+               console.log("API-Antwortstatus: /api/admin/addUser", res.status);
+               if (!res.ok) throw new Error(`Fehler beim Hinzufügen des Nutzers: ${res.status}`);
+               return res.json();
+           })
+           .then((data) => {
+               console.log("7. Nutzer erfolgreich hinzugefügt:", data);
+               alert("Nutzer erfolgreich hinzugefügt.");
+               addUserForm.reset();
+               loadUsers(); // Nutzerliste aktualisieren
+           })
+           .catch((err) => console.error("Fehler beim Hinzufügen des Nutzers:", err));
+   });
