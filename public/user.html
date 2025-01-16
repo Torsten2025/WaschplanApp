@@ -9,6 +9,7 @@
   <title>GBMZ Maneggplatz 18 Buchungskalender</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.13/dayjs.min.js"></script>
+  <script type="module" src="project_variables.js"></script>
 </head>
 <body>
   <header>
@@ -18,9 +19,9 @@
   <main>
     <!-- Navigation zur Steuerung des Kalenders -->
     <section id="navigationContainer" aria-label="Monatsnavigation">
-      <button id="prevMonth" class="nav-button" aria-label="Vorheriger Monat">← Vorheriger Monat</button>
+      <button id="prevMonth" class="nav-button" aria-label="Vorheriger Monat">&larr; Vorheriger Monat</button>
       <h3 id="currentMonthYear">Dezember 2024</h3>
-      <button id="nextMonth" class="nav-button" aria-label="Nächster Monat">Nächster Monat →</button>
+      <button id="nextMonth" class="nav-button" aria-label="Nächster Monat">Nächster Monat &rarr;</button>
     </section>
 
     <!-- Kalender für Maschinen wird dynamisch generiert -->
@@ -55,8 +56,16 @@
     <p>&copy; 2024 GBMZ Maneggplatz 18. Alle Rechte vorbehalten.</p>
     <p><a href="datenschutz.html" aria-label="Datenschutzerklärung">Datenschutzerklärung</a></p>
   </footer>
-  
+
+  <!-- Liste der Variablen und Konstanten (Schreibweisenübersicht): -->
+  <!-- - navigationContainer -->
+  <!-- - prevMonth, nextMonth (Buttons) -->
+  <!-- - machineCalendars (Container für Maschinenkalender) -->
+  <!-- - logForm, machineSelect, logDescription (Fehlerformular) -->
+  <!-- - logMessage (Fehlermeldungsausgabe) -->
+  <!-- - logoutButton (Logout-Funktionalität) -->
+
   <!-- Skripte -->
-  <script src="user.js" defer></script>
+  <script type="module" src="user.js" defer></script>
 </body>
 </html>

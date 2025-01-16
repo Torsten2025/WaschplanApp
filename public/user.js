@@ -1,3 +1,5 @@
+import ProjectReferences from "./project_variables.js";
+
 // Liste der Variablen und Konstanten (Schreibweisenübersicht):
 // - TIME_SLOTS
 // - calendarContainer
@@ -24,10 +26,10 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("1. JavaScript geladen und DOMContentLoaded ausgeführt.");
 
     // 1. Variablen initialisieren
-    const TIME_SLOTS = ["07:00-12:00", "12:00-17:00", "17:00-21:00"];
-    const calendarContainer = document.getElementById("machineCalendars");
-    const navigationContainer = document.getElementById("navigationContainer");
-    const logoutButton = document.getElementById("logoutButton");
+    const TIME_SLOTS = ProjectReferences.jsVariables.TIME_SLOTS;
+    const calendarContainer = document.getElementById(ProjectReferences.htmlIds.machineCalendars);
+    const navigationContainer = document.getElementById(ProjectReferences.htmlIds.navigationContainer);
+    const logoutButton = document.getElementById(ProjectReferences.htmlIds.logoutButton);
 
     if (!calendarContainer || !navigationContainer || !logoutButton) {
         console.error("Ein oder mehrere notwendige DOM-Elemente fehlen.");
@@ -77,8 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <h2 id="currentMonthYear">${dayjs().format("MMMM YYYY")}</h2>
             <button id="nextMonth" class="nav-button">Nächster Monat &rarr;</button>
         `;
-        document.getElementById("prevMonth").addEventListener("click", () => changeMonth(-1));
-        document.getElementById("nextMonth").addEventListener("click", () => changeMonth(1));
+        document.getElementById(ProjectReferences.htmlIds.prevMonth).addEventListener("click", () => changeMonth(-1));
+        document.getElementById(ProjectReferences.htmlIds.nextMonth).addEventListener("click", () => changeMonth(1));
         console.log("5. Navigation erstellt.");
     }
 
@@ -99,7 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Funktion 4: Lädt Maschinen aus der API
     function loadMachines() {
         console.log("7. Maschinen werden geladen...");
-        fetch("/api/machines") // API: 1
+        fetch(ProjectReferences.apiEndpoints.machines) // API: 1
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
                 return res.json();
@@ -151,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Funktion 6: Lädt Buchungen aus der API
     function loadBookings(machine) {
         console.log("9. Buchungen werden geladen für Maschine:", machine.name);
-        fetch("/api/bookings") // API: 2
+        fetch(ProjectReferences.apiEndpoints.bookings) // API: 2
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler beim Laden der Buchungen: ${res.status}`);
                 return res.json();
@@ -165,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch((err) => console.error("Fehler beim Laden der Buchungen:", err.message));
     }
 
-// Funktion 7: Rendert den Kalender für eine Maschine
+    // Funktion 7: Rendert den Kalender für eine Maschine
     function renderCalendar(machineId, bookings) {
         console.log("10. Kalender wird gerendert für Maschine:", machineId);
         const calendarElement = document.getElementById(`calendar-${machineId}`);
@@ -233,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
             machineName: machine.name,
         };
 
-        fetch("/api/admin/addBooking", {
+        fetch(ProjectReferences.apiEndpoints.addBooking, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
@@ -253,7 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function cancelBooking(bookingId) {
         console.log("12. Buchung wird storniert:", bookingId);
 
-        fetch(`/api/user/deleteBooking/${bookingId}`, { method: "DELETE" })
+        fetch(ProjectReferences.apiEndpoints.deleteBooking.replace(":id", bookingId), { method: "DELETE" })
             .then((res) => {
                 if (!res.ok) throw new Error(`Fehler: ${res.status}`);
                 return res.json();

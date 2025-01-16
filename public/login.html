@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Waschplan</title>
   <link rel="stylesheet" href="style.css">
+  <script type="module" src="project_variables.js"></script>
 </head>
 <body class="star-trek-bg">
   <!-- Seite für Login -->
@@ -24,7 +25,9 @@
     <p id="message" class="message"></p>
   </div>
 
-  <script>
+  <script type="module">
+    import ProjectReferences from "./project_variables.js";
+
     // Liste der Variablen:
     // - form: Das Login-Formular
     // - messageEl: Das Element für Fehlermeldungen
@@ -39,8 +42,8 @@
       console.log("1. Login-Seite geladen.");
 
       // 1. DOM-Elemente definieren
-      const form = document.getElementById('loginForm');
-      const messageEl = document.getElementById('message');
+      const form = document.getElementById(ProjectReferences.htmlIds.loginForm);
+      const messageEl = document.getElementById(ProjectReferences.htmlIds.message);
 
       if (!form || !messageEl) {
         console.error("Ein oder mehrere notwendige Elemente fehlen.");
@@ -62,7 +65,7 @@
 
       console.log("3. Daten gesendet an API:", { kuerzel, password });
 
-      fetch('/api/login', {
+      fetch(ProjectReferences.apiEndpoints.login, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kuerzel, password })
