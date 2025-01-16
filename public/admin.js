@@ -117,16 +117,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 5. Maschinen laden
     function loadMachines() {
-        console.log("5. Maschinen werden geladen...");
-        fetch("/api/admin/machines") // API: 5
-            .then((res) => {
-                if (!res.ok) throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
-                return res.json();
-            })
-            .then((machines) => {
-                machineTable.innerHTML = machines
-                    .map(
-                        (machine) => `
+    console.log("5. Maschinen werden geladen...");
+    fetch("/api/admin/machines")
+        .then((res) => {
+            console.log("API-Request: /api/admin/machines, Status:", res.status); // Statuscode loggen
+            if (!res.ok) throw new Error(`Fehler beim Laden der Maschinen: ${res.status}`);
+            return res.json();
+        })
+        .then((machines) => {
+            console.log("Maschinendaten erhalten:", machines); // Geladene Daten anzeigen
+            machineTable.innerHTML = machines
+                .map(
+                    (machine) => `
                     <tr>
                         <td>${machine.id}</td>
                         <td>${machine.name}</td>
@@ -136,13 +138,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             <button class="delete-machine" data-id="${machine.id}">Löschen</button>
                         </td>
                     </tr>`
-                    )
-                    .join("");
+                )
+                .join("");
 
-                attachMachineListeners();
-            })
-            .catch((err) => console.error("Fehler beim Laden der Maschinen:", err));
-    }
+            attachMachineListeners();
+        })
+        .catch((err) => console.error("Fehler beim Laden der Maschinen:", err)); // Fehler anzeigen
+}
 
     // 6. Maschinen-Event-Listener hinzufügen
     function attachMachineListeners() {
