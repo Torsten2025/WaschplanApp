@@ -144,6 +144,7 @@ app.delete("/api/admin/users/:id", async (req, res) => {
 
 // API 5: Alle Maschinen abrufen
 app.get("/api/admin/machines", async (req, res) => {
+    console.log("Route /api/admin/machines aufgerufen.");
     try {
         const machines = await dbAll("SELECT * FROM machines");
         res.json(machines);
