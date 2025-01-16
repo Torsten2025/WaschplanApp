@@ -51,6 +51,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.error("Fehler beim Verbinden mit SQLite:", err.message);
     } else {
         console.log(`SQLite-Datenbank erfolgreich verbunden: ${dbPath}`);
+        initializeDatabase();
     }
 });
 
@@ -82,6 +83,54 @@ function dbRun(sql, params = []) {
     });
 }
 
+// Datenbankinitialisierung
+function initializeDatabase() {
+    const createUsersTable = `CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        kuerzel TEXT NOT NULL UNIQUE
+    );`;
+
+    const createMachinesTable = `CREATE TABLE IF NOT EXISTS machines (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL
+    );`;
+
+    const createBookingsTable = `CREATE TABLE IF NOT EXISTS bookings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL,
+        user_kuerzel TEXT NOT NULL,
+        machine_name TEXT NOT NULL,
+        FOREIGN KEY(user_kuerzel) REFERENCES users(kuerzel),
+        FOREIGN KEY(machine_name) REFERENCES machines(name)
+    );`;
+
+    const createLogsTable = `CREATE TABLE IF NOT EXISTS logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        machine_id INTEGER NOT NULL,
+        datum TEXT NOT NULL,
+        beschreibung TEXT NOT NULL,
+        status TEXT NOT NULL,
+        FOREIGN KEY(machine_id) REFERENCES machines(id)
+    );`;
+
+    db.run(createUsersTable, (err) => {
+        if (err) console.error("Fehler beim Erstellen der Tabelle users:", err.message);
+    });
+
+    db.run(createMachinesTable, (err) => {
+        if (err) console.error("Fehler beim Erstellen der Tabelle machines:", err.message);
+    });
+
+    db.run(createBookingsTable, (err) => {
+        if (err) console.error("Fehler beim Erstellen der Tabelle bookings:", err.message);
+    });
+
+    db.run(createLogsTable, (err) => {
+        if (err) console.error("Fehler beim Erstellen der Tabelle logs:", err.message);
+    });
+}
 // API 1: Alle Nutzer abrufen
 app.get("/api/admin/users", async (req, res) => {
     try {
