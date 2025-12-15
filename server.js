@@ -466,11 +466,37 @@ function createDatabaseConnection() {
     
     function tryNextPath() {
       if (currentPathIndex >= possiblePaths.length) {
-        logger.error('Alle Datenbank-Pfade fehlgeschlagen', {
+        // Letzter Fallback: In-Memory Datenbank (geht bei jedem Neustart verloren, aber App funktioniert)
+        logger.warn('Alle Datenbank-Pfade fehlgeschlagen, verwende In-Memory Datenbank als Fallback', {
           triedPaths: possiblePaths,
-          cwd: process.cwd()
+          cwd: process.cwd(),
+          warning: 'Daten gehen bei Neustart verloren!'
         });
-        reject(new Error('Kein funktionierender Datenbank-Pfad gefunden'));
+        
+        const memoryDatabase = new sqlite3.Database(':memory:', (err) => {
+          if (err) {
+            logger.error('Auch In-Memory Datenbank konnte nicht erstellt werden', err);
+            reject(err);
+            return;
+          }
+          
+          logger.warn('In-Memory Datenbank verwendet - Daten gehen bei Neustart verloren!');
+          
+          // Performance-Optimierungen
+          memoryDatabase.serialize(() => {
+            memoryDatabase.run('PRAGMA journal_mode = WAL');
+            memoryDatabase.run('PRAGMA synchronous = NORMAL');
+            memoryDatabase.run('PRAGMA cache_size = -10000');
+            memoryDatabase.run('PRAGMA foreign_keys = ON');
+            memoryDatabase.run('PRAGMA temp_store = MEMORY');
+          });
+          
+          memoryDatabase.on('error', (err) => {
+            logger.error('Datenbank-Fehler aufgetreten', err);
+          });
+          
+          resolve(memoryDatabase);
+        });
         return;
       }
       
