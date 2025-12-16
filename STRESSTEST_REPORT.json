@@ -1,0 +1,1602 @@
+{
+  "timestamp": "2025-12-16T22:59:35.677Z",
+  "configuration": {
+    "numUsers": 20,
+    "numActionsPerUser": 10,
+    "apiBase": "http://localhost:3000/api/v1"
+  },
+  "summary": {
+    "duration": 2370,
+    "totalRequests": 180,
+    "successfulRequests": 42,
+    "failedRequests": 138,
+    "successRate": "23.33%",
+    "bookingsCreated": 0,
+    "bookingsDeleted": 0,
+    "bookingsQueried": 22,
+    "avgResponseTime": "7.68",
+    "minResponseTime": "1.00",
+    "maxResponseTime": "42.00"
+  },
+  "userStats": [
+    {
+      "userId": 1,
+      "userName": "StressTestUser1",
+      "duration": 1214,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 2,
+      "userName": "StressTestUser2",
+      "duration": 1142,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 3,
+      "userName": "StressTestUser3",
+      "duration": 1926,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 4,
+      "userName": "StressTestUser4",
+      "duration": 1377,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 5,
+      "userName": "StressTestUser5",
+      "duration": 1475,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 6,
+      "userName": "StressTestUser6",
+      "duration": 1392,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 7,
+      "userName": "StressTestUser7",
+      "duration": 1876,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 8,
+      "userName": "StressTestUser8",
+      "duration": 1109,
+      "actions": 9,
+      "errors": 6,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 9,
+      "userName": "StressTestUser9",
+      "duration": 2358,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 10,
+      "userName": "StressTestUser10",
+      "duration": 1240,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 11,
+      "userName": "StressTestUser11",
+      "duration": 1258,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 12,
+      "userName": "StressTestUser12",
+      "duration": 1522,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 13,
+      "userName": "StressTestUser13",
+      "duration": 1940,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 14,
+      "userName": "StressTestUser14",
+      "duration": 1790,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 15,
+      "userName": "StressTestUser15",
+      "duration": 1271,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 16,
+      "userName": "StressTestUser16",
+      "duration": 1739,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 17,
+      "userName": "StressTestUser17",
+      "duration": 1807,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 18,
+      "userName": "StressTestUser18",
+      "duration": 1455,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 19,
+      "userName": "StressTestUser19",
+      "duration": 1756,
+      "actions": 9,
+      "errors": 7,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    },
+    {
+      "userId": 20,
+      "userName": "StressTestUser20",
+      "duration": 655,
+      "actions": 9,
+      "errors": 6,
+      "bookingsCreated": 0,
+      "bookingsDeleted": 0
+    }
+  ],
+  "errorsByType": {
+    "create_booking": 120,
+    "get_bookings": 18
+  },
+  "allErrors": [
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2026-01-05",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2025-12-22",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-21",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-29",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2026-01-13",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2026-01-13",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 1,
+        "date": "2025-12-20",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2025-12-18",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-17",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-22",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2025-12-29",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-26",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2025-12-25",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2026-01-11",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 1,
+        "date": "2026-01-11",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2026-01-05",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2025-12-28",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2025-12-31",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2026-01-09",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2025-12-16",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-03",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2026-01-13",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2025-12-16",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2025-12-20",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2026-01-10",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2026-01-09",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-23",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2026-01-07",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-02",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2026-01-07",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2026-01-06",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2025-12-22",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2025-12-28",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2026-01-09",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2026-01-12",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2025-12-26",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-20",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 1,
+        "date": "2025-12-22",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2025-12-25",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2025-12-20",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2026-01-13",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2025-12-17",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2026-01-03",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2025-12-27",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2026-01-01",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2025-12-28",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-12",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 2,
+        "date": "2025-12-30",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2025-12-25",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2025-12-29",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2026-01-02",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2025-12-31",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2025-12-20",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2026-01-05",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 898,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2025-12-21",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-02",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2026-01-13",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 1,
+        "date": "2026-01-05",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-01",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 1,
+        "date": "2025-12-20",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-10",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2026-01-06",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2025-12-16",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2026-01-10",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2025-12-22",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2026-01-04",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 5,
+        "date": "2026-01-09",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2026-01-11",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2026-01-11",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-04",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2026-01-14",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2025-12-23",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 1,
+        "date": "2025-12-18",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 1,
+        "date": "2025-12-23",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2025-12-18",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2025-12-17",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2026-01-14",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2026-01-01",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2025-12-31",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2025-12-27",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2026-01-01",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 4,
+        "date": "2025-12-21",
+        "slot": "17:00-21:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 3,
+        "date": "2026-01-03",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2025-12-17",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "get_bookings",
+      "status": 429,
+      "error": {
+        "success": false,
+        "error": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
+        "retryAfter": 899,
+        "limit": 100,
+        "windowMs": 900000
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 8,
+        "date": "2025-12-21",
+        "slot": "07:00-12:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 6,
+        "date": "2025-12-28",
+        "slot": "12:00-17:00"
+      }
+    },
+    {
+      "type": "create_booking",
+      "status": 400,
+      "error": {
+        "success": false,
+        "error": "Ungültiger Slot. Gültige Slots: 08:00-12:00, 12:00-16:00, 16:00-20:00",
+        "type": "validation_error"
+      },
+      "booking": {
+        "machine_id": 7,
+        "date": "2026-01-13",
+        "slot": "17:00-21:00"
+      }
+    }
+  ]
+}
