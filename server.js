@@ -3516,7 +3516,7 @@ apiV1.post('/bookings', async (req, res) => {
       // Prüfe ob Person bereits eine zukünftige Buchung hat
       // WICHTIG: Für Trocknungsräume zählen Slot-Serien als eine Buchung
       const futureBookings = await dbHelper.all(
-        `SELECT b.id, b.date, b.slot, m.name as machine_name, m.type as machine_type
+        `SELECT b.id, b.date, b.slot, b.machine_id, m.name as machine_name, m.type as machine_type
          FROM bookings b
          INNER JOIN machines m ON b.machine_id = m.id
          WHERE b.user_name = ? AND b.date > ?
@@ -3531,101 +3531,128 @@ apiV1.post('/bookings', async (req, res) => {
       
       if (futureBookings.length > 0) {
         if (isDryer) {
-          // Prüfe ob es eine Trocknungsraum-Serie gibt
-          const dryerSeries = [];
-          let currentSeries = [];
-          let lastDate = null;
-          let lastSlotIndex = -1;
+          // BUGFIX: Prüfe zuerst, ob bereits ein ANDERER Trockenraum in Zukunft gebucht ist
+          // Regel: Nur 1 Trockenraum insgesamt erlaubt
+          const otherDryerFutureBookings = futureBookings.filter(b => 
+            (b.machine_type === 'dryer' || b.machine_type === 'tumbler') && 
+            b.machine_id !== validatedMachineId
+          );
           
-          for (const booking of futureBookings) {
-            // NEU: Tumbler werden wie Trocknungsräume behandelt
-            if (booking.machine_type === 'dryer' || booking.machine_type === 'tumbler') {
-              const bookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === booking.slot);
-              if (bookingSlotIndex === -1) continue;
-              
-              const isConsecutive = lastSlotIndex !== -1 && (
-                (booking.date === lastDate && bookingSlotIndex === lastSlotIndex + 1) ||
-                (lastSlotIndex === TIME_SLOTS.length - 1 && bookingSlotIndex === 0 &&
-                 new Date(booking.date).getTime() === new Date(lastDate).getTime() + 24 * 60 * 60 * 1000)
-              );
-              
-              if (isConsecutive && currentSeries.length > 0) {
-                currentSeries.push(booking);
-              } else {
-                if (currentSeries.length > 0) {
-                  dryerSeries.push([...currentSeries]);
-                }
-                currentSeries = [booking];
-              }
-              
-              lastDate = booking.date;
-              lastSlotIndex = bookingSlotIndex;
-            } else {
-              // Nicht-Trocknungsraum-Buchung zählt als separate Buchung
-              hasFutureBooking = true;
-              futureBookingMessage = `${booking.machine_name} am ${booking.date} (${booking.slot})`;
-              break;
-            }
-          }
-          
-          if (currentSeries.length > 0) {
-            dryerSeries.push(currentSeries);
-          }
-          
-          // Wenn es eine Trocknungsraum-Serie gibt, prüfe ob die neue Buchung Teil dieser Serie ist
-          if (dryerSeries.length > 0) {
-            const firstSeries = dryerSeries[0];
-            const lastInSeries = firstSeries[firstSeries.length - 1];
-            const lastInSeriesSlotIndex = TIME_SLOTS.findIndex(s => s.label === lastInSeries.slot);
-            const newSlotIndex = TIME_SLOTS.findIndex(s => s.label === validatedSlot);
-            
-            // Prüfe ob die neue Buchung die Serie erweitert (direkt aufeinanderfolgend)
-            // WICHTIG: Prüfe auch, ob es sich um dasselbe Datum handelt oder tagübergreifend
-            const extendsSeries = lastInSeriesSlotIndex !== -1 && newSlotIndex !== -1 && (
-              // Gleicher Tag: nächster Slot
-              (validatedDate === lastInSeries.date && newSlotIndex === lastInSeriesSlotIndex + 1) ||
-              // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des nächsten Tages
-              (lastInSeriesSlotIndex === TIME_SLOTS.length - 1 && newSlotIndex === 0 &&
-               new Date(validatedDate).getTime() === new Date(lastInSeries.date).getTime() + 24 * 60 * 60 * 1000)
+          if (otherDryerFutureBookings.length > 0) {
+            // Es gibt bereits einen ANDEREN Trockenraum in Zukunft gebucht
+            hasFutureBooking = true;
+            const firstOtherBooking = otherDryerFutureBookings[0];
+            futureBookingMessage = `${firstOtherBooking.machine_name} am ${firstOtherBooking.date} (${firstOtherBooking.slot})`;
+          } else {
+            // Prüfe ob es eine Trocknungsraum-Serie für DENSELBEN Trockenraum gibt
+            const sameDryerFutureBookings = futureBookings.filter(b => 
+              (b.machine_type === 'dryer' || b.machine_type === 'tumbler') && 
+              b.machine_id === validatedMachineId
             );
             
-            logger.debug('Buchung erstellen: Trocknungsraum-Serie-Prüfung für Vorausbuchungsregel', {
-              series_length: firstSeries.length,
-              last_slot: lastInSeries.slot,
-              last_slot_date: lastInSeries.date,
-              last_slot_index: lastInSeriesSlotIndex,
-              new_slot: validatedSlot,
-              new_slot_date: validatedDate,
-              new_slot_index: newSlotIndex,
-              extends_series: extendsSeries,
-              date_comparison: {
-                last_date: lastInSeries.date,
-                new_date: validatedDate,
-                dates_equal: validatedDate === lastInSeries.date,
-                date_diff_ms: new Date(validatedDate).getTime() - new Date(lastInSeries.date).getTime()
+            if (sameDryerFutureBookings.length > 0) {
+              // Gruppiere aufeinanderfolgende Slots zu Serien (nur für denselben Trockenraum)
+              const dryerSeries = [];
+              let currentSeries = [];
+              let lastDate = null;
+              let lastSlotIndex = -1;
+              
+              for (const booking of sameDryerFutureBookings) {
+                const bookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === booking.slot);
+                if (bookingSlotIndex === -1) continue;
+                
+                const isConsecutive = lastSlotIndex !== -1 && (
+                  (booking.date === lastDate && bookingSlotIndex === lastSlotIndex + 1) ||
+                  (lastSlotIndex === TIME_SLOTS.length - 1 && bookingSlotIndex === 0 &&
+                   new Date(booking.date).getTime() === new Date(lastDate).getTime() + 24 * 60 * 60 * 1000)
+                );
+                
+                if (isConsecutive && currentSeries.length > 0) {
+                  currentSeries.push(booking);
+                } else {
+                  if (currentSeries.length > 0) {
+                    dryerSeries.push([...currentSeries]);
+                  }
+                  currentSeries = [booking];
+                }
+                
+                lastDate = booking.date;
+                lastSlotIndex = bookingSlotIndex;
               }
-            });
+              
+              if (currentSeries.length > 0) {
+                dryerSeries.push(currentSeries);
+              }
+              
+              // Wenn es eine Trocknungsraum-Serie gibt, prüfe ob die neue Buchung Teil dieser Serie ist
+              if (dryerSeries.length > 0) {
+                const firstSeries = dryerSeries[0];
+                const lastInSeries = firstSeries[firstSeries.length - 1];
+                const lastInSeriesSlotIndex = TIME_SLOTS.findIndex(s => s.label === lastInSeries.slot);
+                const newSlotIndex = TIME_SLOTS.findIndex(s => s.label === validatedSlot);
+                
+                // Prüfe ob die neue Buchung die Serie erweitert (direkt aufeinanderfolgend)
+                // WICHTIG: Prüfe auch, ob es sich um dasselbe Datum handelt oder tagübergreifend
+                const extendsSeries = lastInSeriesSlotIndex !== -1 && newSlotIndex !== -1 && (
+                  // Gleicher Tag: nächster Slot
+                  (validatedDate === lastInSeries.date && newSlotIndex === lastInSeriesSlotIndex + 1) ||
+                  // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des nächsten Tages
+                  (lastInSeriesSlotIndex === TIME_SLOTS.length - 1 && newSlotIndex === 0 &&
+                   new Date(validatedDate).getTime() === new Date(lastInSeries.date).getTime() + 24 * 60 * 60 * 1000)
+                );
+                
+                logger.debug('Buchung erstellen: Trocknungsraum-Serie-Prüfung für Vorausbuchungsregel', {
+                  series_length: firstSeries.length,
+                  last_slot: lastInSeries.slot,
+                  last_slot_date: lastInSeries.date,
+                  last_slot_index: lastInSeriesSlotIndex,
+                  new_slot: validatedSlot,
+                  new_slot_date: validatedDate,
+                  new_slot_index: newSlotIndex,
+                  extends_series: extendsSeries,
+                  same_machine_id: true,
+                  date_comparison: {
+                    last_date: lastInSeries.date,
+                    new_date: validatedDate,
+                    dates_equal: validatedDate === lastInSeries.date,
+                    date_diff_ms: new Date(validatedDate).getTime() - new Date(lastInSeries.date).getTime()
+                  }
+                });
+                
+                // Wenn die Serie bereits 3 Slots hat, blockiere weitere Erweiterungen
+                if (firstSeries.length >= 3 && extendsSeries) {
+                  hasFutureBooking = true;
+                  futureBookingMessage = `Trocknungsraum-Serie: ${firstSeries.length} Slots ab ${firstSeries[0].date} (${firstSeries[0].slot}) bis ${lastInSeries.date} (${lastInSeries.slot})`;
+                } else if (firstSeries.length < 3 && extendsSeries) {
+                  // Serie kann noch erweitert werden - erlaube es
+                  hasFutureBooking = false;
+                  logger.debug('Buchung erstellen: Trocknungsraum-Serie kann erweitert werden', {
+                    current_series_length: firstSeries.length,
+                    new_slot: validatedSlot,
+                    extends_series: true
+                  });
+                } else {
+                  // Neue Buchung ist nicht Teil der Serie - blockiere
+                  hasFutureBooking = true;
+                  if (firstSeries.length === 1) {
+                    futureBookingMessage = `Trocknungsraum-Serie: ${lastInSeries.machine_name} am ${lastInSeries.date} (${lastInSeries.slot})`;
+                  } else {
+                    futureBookingMessage = `Trocknungsraum-Serie: ${firstSeries.length} Slots ab ${firstSeries[0].date} (${firstSeries[0].slot}) bis ${lastInSeries.date} (${lastInSeries.slot})`;
+                  }
+                }
+              }
+            }
             
-            // Wenn die Serie bereits 3 Slots hat, blockiere weitere Erweiterungen
-            if (firstSeries.length >= 3 && extendsSeries) {
+            // Prüfe auch, ob es Nicht-Trocknungsraum-Buchungen gibt
+            const nonDryerFutureBookings = futureBookings.filter(b => 
+              b.machine_type !== 'dryer' && b.machine_type !== 'tumbler'
+            );
+            
+            if (nonDryerFutureBookings.length > 0 && !hasFutureBooking) {
+              // Es gibt bereits eine Nicht-Trocknungsraum-Buchung in Zukunft
               hasFutureBooking = true;
-              futureBookingMessage = `Trocknungsraum-Serie: ${firstSeries.length} Slots ab ${firstSeries[0].date} (${firstSeries[0].slot}) bis ${lastInSeries.date} (${lastInSeries.slot})`;
-            } else if (firstSeries.length < 3 && extendsSeries) {
-              // Serie kann noch erweitert werden - erlaube es
-              hasFutureBooking = false;
-              logger.debug('Buchung erstellen: Trocknungsraum-Serie kann erweitert werden', {
-                current_series_length: firstSeries.length,
-                new_slot: validatedSlot,
-                extends_series: true
-              });
-            } else {
-              // Neue Buchung ist nicht Teil der Serie - blockiere
-              hasFutureBooking = true;
-              if (firstSeries.length === 1) {
-                futureBookingMessage = `Trocknungsraum-Serie: ${lastInSeries.machine_name} am ${lastInSeries.date} (${lastInSeries.slot})`;
-              } else {
-                futureBookingMessage = `Trocknungsraum-Serie: ${firstSeries.length} Slots ab ${firstSeries[0].date} (${firstSeries[0].slot}) bis ${lastInSeries.date} (${lastInSeries.slot})`;
-              }
+              const firstNonDryerBooking = nonDryerFutureBookings[0];
+              futureBookingMessage = `${firstNonDryerBooking.machine_name} am ${firstNonDryerBooking.date} (${firstNonDryerBooking.slot})`;
             }
           }
         } else {
