@@ -8,6 +8,13 @@ const DEBOUNCE_DELAY_NAME = 300; // ms für Name-Input
 const DEBOUNCE_DELAY_DATE = 500; // ms für Datum-Input
 const MESSAGE_AUTO_HIDE_DELAY = 5000; // ms
 
+// Zeit-Slots für Tabellen-Ansichten (Woche und Monat)
+const TIME_SLOTS_TABLE = [
+  { label: '07:00-12:00', start: '07:00', end: '12:00' },
+  { label: '12:00-17:00', start: '12:00', end: '17:00' },
+  { label: '17:00-21:00', start: '17:00', end: '21:00' }
+];
+
 // Globale Variablen
 let machines = [];
 let slots = [];
