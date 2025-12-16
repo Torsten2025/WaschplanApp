@@ -1655,7 +1655,105 @@ app.get('/reset-admin', async (req, res) => {
 // AUTH-ENDPUNKTE
 // ============================================================================
 
-// Login
+// Einfaches Login (nur Name, kein Passwort) - für normale Benutzer
+apiV1.post('/auth/login-simple', async (req, res) => {
+  try {
+    const { name } = req.body;
+    
+    logger.debug('Einfaches Login-Versuch', { 
+      name: name ? 'vorhanden' : 'fehlt',
+      hasSession: !!req.session,
+      sessionId: req.sessionID
+    });
+    
+    if (!name || !name.trim()) {
+      logger.warn('Einfaches Login ohne Name');
+      apiResponse.validationError(res, 'Name ist erforderlich');
+      return;
+    }
+    
+    const trimmedName = name.trim();
+    
+    // Validierung: Name-Länge
+    if (trimmedName.length < 2) {
+      apiResponse.validationError(res, 'Name muss mindestens 2 Zeichen lang sein');
+      return;
+    }
+    if (trimmedName.length > 50) {
+      apiResponse.validationError(res, 'Name darf maximal 50 Zeichen lang sein');
+      return;
+    }
+    
+    // Prüfe ob Benutzer existiert, sonst erstellen
+    let user = await dbHelper.get('SELECT * FROM users WHERE username = ?', [trimmedName]);
+    
+    if (!user) {
+      // Benutzer existiert nicht - erstelle automatisch (ohne Passwort)
+      logger.info('Erstelle neuen Benutzer für einfaches Login', { username: trimmedName });
+      
+      // Erstelle User ohne Passwort (password_hash = NULL für einfache Login)
+      const result = await dbHelper.run(
+        'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+        [trimmedName, null, 'user']
+      );
+      
+      user = await dbHelper.get('SELECT * FROM users WHERE id = ?', [result.lastID]);
+      logger.info('Neuer Benutzer erstellt', { userId: user.id, username: user.username });
+    }
+    
+    // Session erstellen
+    if (!req.session) {
+      logger.error('KRITISCH: req.session ist undefined!');
+      apiResponse.error(res, 'Session-Fehler', 500);
+      return;
+    }
+    
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.role = user.role;
+    
+    logger.debug('Session gesetzt (einfaches Login)', { 
+      userId: req.session.userId,
+      username: req.session.username,
+      role: req.session.role,
+      sessionId: req.sessionID
+    });
+    
+    // Session explizit speichern
+    await new Promise((resolve) => {
+      req.session.save((err) => {
+        if (err) {
+          logger.error('Fehler beim Speichern der Session', err);
+        } else {
+          logger.debug('Session erfolgreich gespeichert (einfaches Login)', { sessionId: req.sessionID });
+        }
+        resolve();
+      });
+    });
+    
+    // Last-Login aktualisieren
+    await dbHelper.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+    
+    logger.info('Einfaches Login erfolgreich', { username: user.username, sessionId: req.sessionID });
+    
+    metrics.api.auth.logins++;
+    
+    apiResponse.success(res, {
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+  } catch (error) {
+    logger.error('Fehler beim einfachen Login', error, { 
+      errorMessage: error.message,
+      errorStack: error.stack,
+      name: req.body?.name
+    });
+    apiResponse.error(res, 'Fehler beim Login', 500);
+  }
+});
+
+// Login (mit Passwort - für Admin)
 apiV1.post('/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -2635,8 +2733,8 @@ apiV1.get('/bookings/month', async (req, res) => {
 });
 
 // API-Route: Buchung erstellen
-// WICHTIG: Normale Buchungen funktionieren ohne Login (nur mit Name)
-// Admin-Bereich erfordert separate Authentifizierung
+// WICHTIG: Normale Buchungen funktionieren mit einfachem Namen (kein Login nötig)
+// Der Admin-Bereich verwendet weiterhin eigene Authentifizierung mit Passwort
 apiV1.post('/bookings', async (req, res) => {
   try {
     const { machine_id, date, slot, user_name } = req.body;
