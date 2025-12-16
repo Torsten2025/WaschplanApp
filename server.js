@@ -3642,29 +3642,9 @@ apiV1.post('/bookings', async (req, res) => {
       return;
     }
     
-    // 2. Prüfe: Gleicher Slot + Datum + Person auf unterschiedlichen Maschinen
-    const existingBookingSamePerson = await dbHelper.get(
-      `SELECT b.*, m.name as machine_name
-       FROM bookings b
-       INNER JOIN machines m ON b.machine_id = m.id
-       WHERE b.user_name = ? AND b.date = ? AND b.slot = ?`,
-      [validatedUserName, validatedDate, validatedSlot]
-    );
-    
-    if (existingBookingSamePerson) {
-      logger.warn('Buchung erstellen: Doppelbuchung erkannt (maschinenübergreifend)', {
-        user_name: validatedUserName,
-        date: validatedDate,
-        slot: validatedSlot,
-        existing_machine: existingBookingSamePerson.machine_name,
-        requested_machine_id: validatedMachineId
-      });
-      apiResponse.conflict(res, 
-        `Sie haben bereits eine Buchung für ${validatedSlot} am ${validatedDate} (${existingBookingSamePerson.machine_name}). ` +
-        `Sie können nicht denselben Slot auf einer anderen Maschine buchen.`
-      );
-      return;
-    }
+    // HINWEIS: Die Prüfung auf denselben Slot auf verschiedenen Maschinen wurde entfernt.
+    // Die neue Logik (oben bei Waschmaschinen) prüft bereits, ob alle Waschmaschinen-Buchungen denselben Slot haben.
+    // Für Trocknungsräume gilt: Nur 1 Trockenraum insgesamt möglich (wird oben geprüft).
     
     // Buchung erstellen
     logger.debug('Buchung erstellen - Vor INSERT', {

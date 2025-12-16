@@ -273,7 +273,21 @@ function renderMachines() {
     return;
   }
   
-  container.innerHTML = machines.map(machine => {
+  // Sortiere Maschinen: Erst nach Typ (washer, dryer, tumbler), dann nach Name
+  const sortedMachines = [...machines].sort((a, b) => {
+    const typeOrder = { 'washer': 1, 'dryer': 2, 'tumbler': 3 };
+    const typeA = typeOrder[a.type] || 999;
+    const typeB = typeOrder[b.type] || 999;
+    
+    if (typeA !== typeB) {
+      return typeA - typeB;
+    }
+    
+    // Bei gleichem Typ nach Name sortieren
+    return (a.name || '').localeCompare(b.name || '', 'de', { numeric: true });
+  });
+  
+  container.innerHTML = sortedMachines.map(machine => {
     let typeLabel = 'Unbekannt';
     if (machine.type === 'washer') {
       typeLabel = 'Waschmaschine';
@@ -485,7 +499,21 @@ function renderSlots() {
     });
   }
   
-  container.innerHTML = machines.map(machine => {
+  // Sortiere Maschinen: Erst nach Typ (washer, dryer, tumbler), dann nach Name
+  const sortedMachines = [...machines].sort((a, b) => {
+    const typeOrder = { 'washer': 1, 'dryer': 2, 'tumbler': 3 };
+    const typeA = typeOrder[a.type] || 999;
+    const typeB = typeOrder[b.type] || 999;
+    
+    if (typeA !== typeB) {
+      return typeA - typeB;
+    }
+    
+    // Bei gleichem Typ nach Name sortieren
+    return (a.name || '').localeCompare(b.name || '', 'de', { numeric: true });
+  });
+  
+  container.innerHTML = sortedMachines.map(machine => {
     const machineSlots = slots.map(slot => {
       // Prüfe ob Slot belegt ist (auch Datum prüfen falls vorhanden)
       const booking = bookings.find(b => {
