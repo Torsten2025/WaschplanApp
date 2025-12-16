@@ -3848,6 +3848,73 @@ apiV1.delete('/bookings/:id', async (req, res) => {
       return;
     }
     
+    // PUNKT 1: Warnung vor dem Löschen - Prüfe ob Buchung Teil einer Serie ist
+    const machine = await dbHelper.get('SELECT * FROM machines WHERE id = ?', [booking.machine_id]);
+    let warningMessage = null;
+    let isPartOfSeries = false;
+    
+    if (machine) {
+      const isDryer = machine.type === 'dryer' || machine.type === 'tumbler';
+      
+      if (isDryer) {
+        // Prüfe ob Teil einer Trocknungsraum-Serie
+        const otherDryerBookings = await dbHelper.all(
+          `SELECT b.date, b.slot, b.machine_id
+           FROM bookings b
+           INNER JOIN machines m ON b.machine_id = m.id
+           WHERE b.user_name = ? AND b.machine_id = ? AND b.id != ? AND (m.type = 'dryer' OR m.type = 'tumbler')
+           ORDER BY b.date ASC, b.slot ASC`,
+          [booking.user_name, booking.machine_id, validatedId]
+        );
+        
+        if (otherDryerBookings.length > 0) {
+          // Prüfe ob die Buchung Teil einer aufeinanderfolgenden Serie ist
+          const bookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === booking.slot);
+          const allBookings = [...otherDryerBookings, { date: booking.date, slot: booking.slot, machine_id: booking.machine_id }]
+            .sort((a, b) => {
+              const dateCompare = a.date.localeCompare(b.date);
+              if (dateCompare !== 0) return dateCompare;
+              const aIndex = TIME_SLOTS.findIndex(s => s.label === a.slot);
+              const bIndex = TIME_SLOTS.findIndex(s => s.label === b.slot);
+              return aIndex - bIndex;
+            });
+          
+          // Finde Position der zu löschenden Buchung in der sortierten Liste
+          const bookingIndex = allBookings.findIndex(b => b.date === booking.date && b.slot === booking.slot);
+          
+          if (bookingIndex !== -1) {
+            // Prüfe ob sie zwischen anderen Buchungen liegt (Teil einer Serie)
+            const hasPrevious = bookingIndex > 0;
+            const hasNext = bookingIndex < allBookings.length - 1;
+            
+            if (hasPrevious || hasNext) {
+              isPartOfSeries = true;
+              warningMessage = `Diese Trocknungsraum-Buchung ist Teil einer Serie. Beim Löschen können Lücken entstehen, die zukünftige Buchungen beeinträchtigen könnten.`;
+            }
+          }
+        }
+      } else if (machine.type === 'washer') {
+        // Prüfe ob Teil einer Waschmaschinen-Serie (mehrere Maschinen mit gleichem Slot)
+        const washerBookingsSameDay = await dbHelper.all(
+          `SELECT b.machine_id, b.slot
+           FROM bookings b
+           INNER JOIN machines m ON b.machine_id = m.id
+           WHERE b.user_name = ? AND b.date = ? AND m.type = 'washer'
+           ORDER BY b.machine_id ASC`,
+          [booking.user_name, booking.date]
+        );
+        
+        if (washerBookingsSameDay.length > 1) {
+          // Prüfe ob alle denselben Slot haben
+          const slots = [...new Set(washerBookingsSameDay.map(b => b.slot))];
+          if (slots.length === 1 && slots[0] === booking.slot) {
+            isPartOfSeries = true;
+            warningMessage = `Diese Waschmaschinen-Buchung ist Teil einer Serie (${washerBookingsSameDay.length} Maschinen mit Slot ${booking.slot}). Beim Löschen können Inkonsistenzen entstehen.`;
+          }
+        }
+      }
+    }
+    
     // Buchung löschen
     await dbHelper.run('DELETE FROM bookings WHERE id = ?', [validatedId]);
     
@@ -3855,13 +3922,93 @@ apiV1.delete('/bookings/:id', async (req, res) => {
       booking_id: validatedId,
       date: booking.date,
       slot: booking.slot,
-      user_name: booking.user_name
+      user_name: booking.user_name,
+      was_part_of_series: isPartOfSeries
     });
+    
+    // PUNKT 2: Validierung nach dem Löschen - Prüfe auf Inkonsistenzen
+    if (machine) {
+      const isDryer = machine.type === 'dryer' || machine.type === 'tumbler';
+      
+      if (isDryer) {
+        // Prüfe ob verbleibende Trocknungsraum-Buchungen noch aufeinanderfolgend sind
+        const remainingBookings = await dbHelper.all(
+          `SELECT b.date, b.slot
+           FROM bookings b
+           INNER JOIN machines m ON b.machine_id = m.id
+           WHERE b.user_name = ? AND b.machine_id = ? AND (m.type = 'dryer' OR m.type = 'tumbler')
+           ORDER BY b.date ASC, b.slot ASC`,
+          [booking.user_name, booking.machine_id]
+        );
+        
+        if (remainingBookings.length > 1) {
+          // Prüfe auf Lücken in der Serie
+          let hasGaps = false;
+          for (let i = 1; i < remainingBookings.length; i++) {
+            const prevBooking = remainingBookings[i - 1];
+            const currBooking = remainingBookings[i];
+            const prevSlotIndex = TIME_SLOTS.findIndex(s => s.label === prevBooking.slot);
+            const currSlotIndex = TIME_SLOTS.findIndex(s => s.label === currBooking.slot);
+            
+            const isConsecutive = (
+              (prevBooking.date === currBooking.date && currSlotIndex === prevSlotIndex + 1) ||
+              (prevSlotIndex === TIME_SLOTS.length - 1 && currSlotIndex === 0 &&
+               new Date(currBooking.date).getTime() === new Date(prevBooking.date).getTime() + 24 * 60 * 60 * 1000)
+            );
+            
+            if (!isConsecutive) {
+              hasGaps = true;
+              break;
+            }
+          }
+          
+          if (hasGaps) {
+            logger.warn('Buchung gelöscht: Inkonsistenz in Trocknungsraum-Serie erkannt', {
+              booking_id: validatedId,
+              user_name: booking.user_name,
+              machine_id: booking.machine_id,
+              remaining_bookings: remainingBookings,
+              warning: 'Verbleibende Buchungen bilden keine durchgehende Serie mehr'
+            });
+          }
+        }
+      } else if (machine.type === 'washer') {
+        // Prüfe ob verbleibende Waschmaschinen-Buchungen noch denselben Slot haben
+        const remainingBookings = await dbHelper.all(
+          `SELECT b.machine_id, b.slot
+           FROM bookings b
+           INNER JOIN machines m ON b.machine_id = m.id
+           WHERE b.user_name = ? AND b.date = ? AND m.type = 'washer'
+           ORDER BY b.machine_id ASC`,
+          [booking.user_name, booking.date]
+        );
+        
+        if (remainingBookings.length > 1) {
+          const slots = [...new Set(remainingBookings.map(b => b.slot))];
+          if (slots.length > 1) {
+            logger.warn('Buchung gelöscht: Inkonsistenz in Waschmaschinen-Serie erkannt', {
+              booking_id: validatedId,
+              user_name: booking.user_name,
+              date: booking.date,
+              remaining_bookings: remainingBookings,
+              different_slots: slots,
+              warning: 'Verbleibende Waschmaschinen-Buchungen haben unterschiedliche Slots'
+            });
+          }
+        }
+      }
+    }
     
     // Metriken aktualisieren
     metrics.api.bookings.deleted++;
     
-    apiResponse.success(res, { message: 'Buchung erfolgreich gelöscht' });
+    // Response mit optionaler Warnung
+    const responseData = {
+      message: 'Buchung erfolgreich gelöscht',
+      warning: warningMessage || undefined
+    };
+    
+    apiResponse.success(res, responseData);
   } catch (error) {
     logger.error('Fehler beim Löschen der Buchung', error, { booking_id: req.params.id });
     apiResponse.error(res, 'Fehler beim Löschen der Buchung aus der Datenbank', 500);
