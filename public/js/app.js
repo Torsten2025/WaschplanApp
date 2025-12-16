@@ -650,22 +650,21 @@ function createSlotElement(slot, machine, booking, isBooked, isOwnBooking) {
  * Behandelt Klick auf einen freien Slot
  */
 async function handleSlotClick(machineId, slotLabel) {
-  // WICHTIG: Nur eingeloggte Benutzer können buchen
-  if (!currentUser || !currentUser.username) {
-    showMessage('Sie müssen sich anmelden, um Buchungen zu erstellen. Bitte klicken Sie auf "Anmelden" oben rechts.', 'error');
-    // Öffne Login-Modal
-    const loginBtn = document.getElementById('login-btn');
-    if (loginBtn) {
-      loginBtn.click();
+  const dateInput = document.getElementById('date-input');
+  const nameInput = document.getElementById('name-input');
+  
+  let date = dateInput.value;
+  // Verwende Benutzername aus Input-Feld (wird automatisch im localStorage gespeichert)
+  const userName = nameInput ? nameInput.value.trim() : '';
+  
+  // Validierung: Name muss vorhanden sein
+  if (!userName) {
+    showMessage('Bitte geben Sie Ihren Namen ein, um eine Buchung zu erstellen.', 'error');
+    if (nameInput) {
+      nameInput.focus();
     }
     return;
   }
-  
-  const dateInput = document.getElementById('date-input');
-  
-  let date = dateInput.value;
-  // Verwende Benutzername aus Session (nicht aus Input-Feld)
-  const userName = currentUser.username;
   
   // Validierung
   if (!date) {
@@ -746,12 +745,11 @@ async function handleSlotClick(machineId, slotLabel) {
     showMessage('Buchung wird erstellt...', 'info');
     
     // Debug: Logge die zu sendenden Daten
-    // WICHTIG: user_name wird NICHT mehr gesendet - kommt aus Session im Backend
     const bookingData = {
       machine_id: machineId,
       date: date,
-      slot: slotLabel
-      // user_name wird automatisch aus der Session genommen (Backend)
+      slot: slotLabel,
+      user_name: userName
     };
     
     if (typeof logger !== 'undefined') {
@@ -2213,12 +2211,13 @@ async function checkAuthStatus() {
       updateAuthUI();
     }
   } catch (error) {
+    // Fehler beim Auth-Check sind OK - normale Buchungen funktionieren auch ohne Login
+    // Nur debug loggen, nicht als Fehler behandeln
     if (typeof logger !== 'undefined') {
-      logger.error('Fehler beim Prüfen des Auth-Status', error);
-    } else {
-      console.error('Fehler beim Prüfen des Auth-Status:', error);
+      logger.debug('Auth-Status-Check: Nicht eingeloggt (normal)', error);
     }
     currentUser = null;
+    currentUserName = '';
     updateAuthUI();
   }
 }
@@ -2243,12 +2242,13 @@ function updateAuthUI() {
   }
   
   if (currentUser && currentUser.username) {
-    // Eingeloggt
+    // Eingeloggt (optional - für Admin-Funktionen)
     loginBtn.style.display = 'none';
     userInfo.style.display = 'flex';
+    userInfo.classList.remove('hidden');
     usernameDisplay.textContent = currentUser.username;
     
-    // Name-Input verstecken (nicht mehr benötigt - Benutzername kommt aus Session)
+    // Name-Input bleibt sichtbar (normale Buchungen funktionieren auch ohne Login)
     const nameInputGroup = nameInput.closest('.input-group');
     if (nameInputGroup) {
       nameInputGroup.style.display = 'none';
@@ -2256,17 +2256,19 @@ function updateAuthUI() {
     nameInput.value = currentUser.username;
     nameInput.disabled = true;
   } else {
-    // Nicht eingeloggt
+    // Nicht eingeloggt (normal - normale Buchungen funktionieren ohne Login)
     loginBtn.style.display = 'block';
     userInfo.style.display = 'none';
+    userInfo.classList.add('hidden');
     
-    // Name-Input anzeigen (aber wird nicht mehr für Buchungen verwendet - nur für Info)
+    // Name-Input anzeigen (wird für normale Buchungen verwendet)
     const nameInputGroup = nameInput.closest('.input-group');
     if (nameInputGroup) {
       nameInputGroup.style.display = 'block';
     }
     nameInput.disabled = false;
-    nameInput.placeholder = 'Bitte melden Sie sich an, um zu buchen';
+    nameInput.disabled = false;
+    nameInput.placeholder = 'Ihr Name';
   }
 }
 

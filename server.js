@@ -2635,27 +2635,17 @@ apiV1.get('/bookings/month', async (req, res) => {
 });
 
 // API-Route: Buchung erstellen
-// WICHTIG: Nur für eingeloggte Benutzer - Authentifizierung erforderlich
-apiV1.post('/bookings', requireAuth, async (req, res) => {
+// WICHTIG: Normale Buchungen funktionieren ohne Login (nur mit Name)
+// Admin-Bereich erfordert separate Authentifizierung
+apiV1.post('/bookings', async (req, res) => {
   try {
-    const { machine_id, date, slot } = req.body;
-    
-    // user_name aus Session nehmen (nicht aus Request-Body - Sicherheit!)
-    const validatedUserName = req.session?.username;
-    
-    if (!validatedUserName) {
-      logger.warn('Buchung erstellen: Kein Benutzername in Session', {
-        hasSession: !!req.session,
-        sessionId: req.sessionID
-      });
-      apiResponse.unauthorized(res, 'Sie müssen eingeloggt sein, um Buchungen zu erstellen. Bitte melden Sie sich an.');
-      return;
-    }
+    const { machine_id, date, slot, user_name } = req.body;
     
     // Validierung und Normalisierung: Pflichtfelder
     const validatedMachineId = validateInteger(machine_id, 'machine_id');
     const validatedDate = date ? (typeof date === 'string' ? date.trim() : String(date)) : null;
     const validatedSlot = validateAndTrimString(slot, 'slot');
+    const validatedUserName = validateAndTrimString(user_name, 'user_name');
     
     // Prüfe ob Pflichtfelder vorhanden sind
     if (!validatedMachineId) {
@@ -2673,6 +2663,12 @@ apiV1.post('/bookings', requireAuth, async (req, res) => {
     if (!validatedSlot) {
       logger.warn('Buchung erstellen: slot fehlt oder ist leer', { slot });
       apiResponse.validationError(res, 'slot ist erforderlich und darf nicht leer sein');
+      return;
+    }
+    
+    if (!validatedUserName) {
+      logger.warn('Buchung erstellen: user_name fehlt oder ist leer', { user_name });
+      apiResponse.validationError(res, 'user_name ist erforderlich und darf nicht leer sein');
       return;
     }
     
