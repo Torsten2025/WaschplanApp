@@ -3376,12 +3376,13 @@ apiV1.post('/bookings', async (req, res) => {
         
         let extendsSeries = false;
         if (allDryerBookingsForMachine.length > 0) {
+          // Prüfe ob nach der letzten Buchung (chronologisch)
           const lastBooking = allDryerBookingsForMachine[allDryerBookingsForMachine.length - 1];
           const lastBookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === lastBooking.slot);
           
           if (lastBookingSlotIndex !== -1) {
-            // Prüfe ob direkt aufeinanderfolgend
-            const isConsecutive = (
+            // Prüfe ob direkt aufeinanderfolgend NACH der letzten Buchung
+            const isConsecutiveAfter = (
               // Gleicher Tag: nächster Slot
               (validatedDate === lastBooking.date && newSlotIndex === lastBookingSlotIndex + 1) ||
               // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des nächsten Tages
@@ -3389,7 +3390,18 @@ apiV1.post('/bookings', async (req, res) => {
                new Date(validatedDate).getTime() === new Date(lastBooking.date).getTime() + 24 * 60 * 60 * 1000)
             );
             
-            if (isConsecutive) {
+            // Prüfe ob vor der ersten Buchung (chronologisch) - für rückwärts Buchungen
+            const firstBooking = allDryerBookingsForMachine[0];
+            const firstBookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === firstBooking.slot);
+            const isConsecutiveBefore = firstBookingSlotIndex !== -1 && (
+              // Gleicher Tag: Slot direkt davor
+              (validatedDate === firstBooking.date && newSlotIndex === firstBookingSlotIndex - 1) ||
+              // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des aktuellen Tages
+              (newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0 &&
+               new Date(firstBooking.date).getTime() === new Date(validatedDate).getTime() + 24 * 60 * 60 * 1000)
+            );
+            
+            if (isConsecutiveAfter || isConsecutiveBefore) {
               extendsSeries = true;
               maxSeriesLength++;
             }
@@ -3444,39 +3456,19 @@ apiV1.post('/bookings', async (req, res) => {
         }
         
         // Prüfe ob die neue Buchung nicht aufeinanderfolgend ist
-        // BUGFIX: Erlaube auch Buchungen VOR der Serie, wenn sie aufeinanderfolgend sind
+        // extendsSeries prüft jetzt beide Richtungen (vor und nach), daher vereinfachen wir hier
         if (!extendsSeries && allDryerBookingsForMachine.length > 0) {
-          // Prüfe ob die neue Buchung VOR der Serie liegt und aufeinanderfolgend ist
-          const firstBooking = allDryerBookingsForMachine[0];
-          const firstBookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === firstBooking.slot);
-          
-          let isConsecutiveBefore = false;
-          if (firstBookingSlotIndex !== -1 && newSlotIndex !== -1) {
-            // Prüfe ob die neue Buchung direkt vor der ersten Buchung liegt
-            const isBeforeFirst = (
-              // Gleicher Tag: Slot direkt davor
-              (validatedDate === firstBooking.date && newSlotIndex === firstBookingSlotIndex - 1) ||
-              // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des aktuellen Tages
-              (newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0 &&
-               new Date(firstBooking.date).getTime() === new Date(validatedDate).getTime() + 24 * 60 * 60 * 1000)
-            );
-            isConsecutiveBefore = isBeforeFirst;
-          }
-          
-          if (!isConsecutiveBefore) {
-            logger.warn('Buchung erstellen: Trocknungsraum-Buchung nicht aufeinanderfolgend', {
-              user_name: validatedUserName,
-              date: validatedDate,
-              slot: validatedSlot,
-              existing_bookings: allDryerBookingsForMachine,
-              is_consecutive_before: isConsecutiveBefore
-            });
-            apiResponse.validationError(res,
-              `Trocknungsraum-Slots müssen direkt aufeinanderfolgend sein. ` +
-              `Ihre bestehenden Trocknungsraum-Buchungen: ${allDryerBookingsForMachine.map(b => `${b.date} ${b.slot}`).join(', ')}`
-            );
-            return;
-          }
+          logger.warn('Buchung erstellen: Trocknungsraum-Buchung nicht aufeinanderfolgend', {
+            user_name: validatedUserName,
+            date: validatedDate,
+            slot: validatedSlot,
+            existing_bookings: allDryerBookingsForMachine
+          });
+          apiResponse.validationError(res,
+            `Trocknungsraum-Slots müssen direkt aufeinanderfolgend sein. ` +
+            `Ihre bestehenden Trocknungsraum-Buchungen: ${allDryerBookingsForMachine.map(b => `${b.date} ${b.slot}`).join(', ')}`
+          );
+          return;
         }
       }
     }
