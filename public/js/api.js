@@ -461,26 +461,35 @@ async function deleteBooking(id, date = null) {
       throw new Error('Keine Internetverbindung. Buchung kann nicht gelöscht werden.');
     }
     
-    // Hole aktuellen Benutzernamen aus dem Input-Feld oder localStorage
+    // Hole aktuellen Benutzernamen - Priorität: Session > Input-Feld > localStorage
     let userName = '';
     try {
-      const nameInput = document.getElementById('name-input');
-      if (nameInput && nameInput.value) {
-        userName = nameInput.value.trim();
-      } else if (typeof storage !== 'undefined') {
-        userName = storage.getItem('waschmaschine_user_name') || '';
+      // Prüfe ob currentUser/currentUserName global verfügbar ist (aus app.js)
+      if (typeof currentUser !== 'undefined' && currentUser && currentUser.username) {
+        userName = currentUser.username;
+      } else if (typeof currentUserName !== 'undefined' && currentUserName) {
+        userName = currentUserName;
+      } else {
+        // Fallback: Input-Feld oder localStorage
+        const nameInput = document.getElementById('name-input');
+        if (nameInput && nameInput.value) {
+          userName = nameInput.value.trim();
+        } else if (typeof storage !== 'undefined') {
+          userName = storage.getItem('waschmaschine_user_name') || '';
+        }
       }
     } catch (e) {
       // Ignoriere Fehler beim Zugriff auf DOM/storage
     }
     
-    // user_name als Query-Parameter übergeben
+    // user_name als Query-Parameter übergeben (Backend verwendet Session wenn vorhanden, sonst Query-Parameter)
     const url = userName 
       ? `${API_BASE_URL}/bookings/${id}?user_name=${encodeURIComponent(userName)}`
       : `${API_BASE_URL}/bookings/${id}`;
     
     const response = await fetchWithRetry(url, {
-      method: 'DELETE'
+      method: 'DELETE',
+      credentials: 'include' // Wichtig: Session-Cookie mitsenden
     });
     
     if (!response.ok) {
