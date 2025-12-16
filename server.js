@@ -1487,6 +1487,120 @@ async function getCurrentUser(req) {
 const apiV1 = express.Router();
 
 // ============================================================================
+// TEMPORÄRER ADMIN-RESET ENDPOINT (NUR FÜR NOTFALL - NACH GEBRAUCH ENTFERNEN!)
+// ============================================================================
+
+/**
+ * TEMPORÄRER Endpoint zum Zurücksetzen des Admin-Benutzers
+ * WICHTIG: Nach erfolgreichem Reset wieder entfernen!
+ * 
+ * Aufruf: GET /reset-admin
+ */
+app.get('/reset-admin', async (req, res) => {
+  try {
+    logger.info('Admin-Reset-Endpoint aufgerufen');
+    
+    const ADMIN_USERNAME = 'admin';
+    const ADMIN_PASSWORD = 'admin123';
+    
+    // Verwende dieselbe Datenbank wie der Server
+    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
+    
+    // Datenbankverbindung erstellen
+    const db = new sqlite3.Database(dbPath, (err) => {
+      if (err) {
+        logger.error('Fehler beim Öffnen der Datenbank für Admin-Reset', err);
+        return res.status(500).json({
+          success: false,
+          error: 'Fehler beim Öffnen der Datenbank: ' + err.message
+        });
+      }
+    });
+    
+    // Prüfe ob Admin existiert
+    db.get('SELECT id, username FROM users WHERE username = ?', [ADMIN_USERNAME], async (err, row) => {
+      if (err) {
+        logger.error('Fehler beim Prüfen des Admin-Benutzers', err);
+        db.close();
+        return res.status(500).json({
+          success: false,
+          error: 'Fehler beim Prüfen des Admin-Benutzers: ' + err.message
+        });
+      }
+      
+      try {
+        const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+        
+        if (row) {
+          // Admin existiert - Passwort zurücksetzen
+          db.run(
+            'UPDATE users SET password_hash = ?, role = ? WHERE username = ?',
+            [hash, 'admin', ADMIN_USERNAME],
+            (err) => {
+              db.close();
+              if (err) {
+                logger.error('Fehler beim Zurücksetzen des Admin-Passworts', err);
+                return res.status(500).json({
+                  success: false,
+                  error: 'Fehler beim Zurücksetzen des Passworts: ' + err.message
+                });
+              }
+              
+              logger.info('Admin-Passwort erfolgreich zurückgesetzt');
+              res.json({
+                success: true,
+                message: 'Admin-Benutzer erfolgreich zurückgesetzt!',
+                username: ADMIN_USERNAME,
+                password: ADMIN_PASSWORD,
+                warning: '⚠️ WICHTIG: Bitte entfernen Sie diesen Endpoint nach Gebrauch aus dem Code!'
+              });
+            }
+          );
+        } else {
+          // Admin existiert nicht - erstellen
+          db.run(
+            'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+            [ADMIN_USERNAME, hash, 'admin'],
+            (err) => {
+              db.close();
+              if (err) {
+                logger.error('Fehler beim Erstellen des Admin-Benutzers', err);
+                return res.status(500).json({
+                  success: false,
+                  error: 'Fehler beim Erstellen des Admin-Benutzers: ' + err.message
+                });
+              }
+              
+              logger.info('Admin-Benutzer erfolgreich erstellt');
+              res.json({
+                success: true,
+                message: 'Admin-Benutzer erfolgreich erstellt!',
+                username: ADMIN_USERNAME,
+                password: ADMIN_PASSWORD,
+                warning: '⚠️ WICHTIG: Bitte entfernen Sie diesen Endpoint nach Gebrauch aus dem Code!'
+              });
+            }
+          );
+        }
+      } catch (hashError) {
+        db.close();
+        logger.error('Fehler beim Hashen des Passworts', hashError);
+        return res.status(500).json({
+          success: false,
+          error: 'Fehler beim Hashen des Passworts: ' + hashError.message
+        });
+      }
+    });
+  } catch (error) {
+    logger.error('Unerwarteter Fehler im Admin-Reset-Endpoint', error);
+    res.status(500).json({
+      success: false,
+      error: 'Unerwarteter Fehler: ' + error.message
+    });
+  }
+});
+
+// ============================================================================
 // AUTH-ENDPUNKTE
 // ============================================================================
 
