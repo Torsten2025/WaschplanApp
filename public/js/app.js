@@ -212,7 +212,8 @@ function setupEventListeners() {
   // Connection-Restored Handler
   window.onConnectionRestored = async () => {
     showMessage('Verbindung wiederhergestellt. Daten werden aktualisiert...', 'success');
-    const date = document.getElementById('date-input').value;
+    const dateInput = document.getElementById('date-input');
+    const date = dateInput ? dateInput.value : null;
     try {
       await loadMachines();
       await loadSlots();
