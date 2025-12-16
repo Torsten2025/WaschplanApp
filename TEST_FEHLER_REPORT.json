@@ -1,0 +1,81 @@
+{
+  "timestamp": "2025-12-16T18:55:19.747Z",
+  "summary": {
+    "passed": 3,
+    "failed": 5,
+    "errors": 0
+  },
+  "failed": [
+    {
+      "name": "Einfaches Login (normale User)",
+      "reason": "Status: 404, Data: {\"success\":false,\"error\":\"Endpoint nicht gefunden\"}",
+      "details": {
+        "status": 404,
+        "headers": {
+          "x-powered-by": "Express",
+          "access-control-allow-origin": "*",
+          "access-control-allow-credentials": "true",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "DENY",
+          "x-xss-protection": "1; mode=block",
+          "x-ratelimit-limit": "100",
+          "x-ratelimit-remaining": "99",
+          "x-ratelimit-reset": "2025-12-16T19:10:19.744Z",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "51",
+          "etag": "W/\"33-5RIJ6WcyBiWsfRZyKAS7CgVatuE\"",
+          "date": "Tue, 16 Dec 2025 18:55:19 GMT",
+          "connection": "keep-alive",
+          "keep-alive": "timeout=5"
+        },
+        "data": {
+          "success": false,
+          "error": "Endpoint nicht gefunden"
+        },
+        "cookies": []
+      }
+    },
+    {
+      "name": "User-Session prüfen",
+      "reason": "Keine User-Cookies vorhanden"
+    },
+    {
+      "name": "Buchung erstellen",
+      "reason": "Keine User-Cookies vorhanden"
+    },
+    {
+      "name": "Senior-Login",
+      "reason": "Status: 404, Data: {\"success\":false,\"error\":\"Endpoint nicht gefunden\"}",
+      "details": {
+        "status": 404,
+        "headers": {
+          "x-powered-by": "Express",
+          "access-control-allow-origin": "*",
+          "access-control-allow-credentials": "true",
+          "x-content-type-options": "nosniff",
+          "x-frame-options": "DENY",
+          "x-xss-protection": "1; mode=block",
+          "x-ratelimit-limit": "100",
+          "x-ratelimit-remaining": "99",
+          "x-ratelimit-reset": "2025-12-16T19:10:19.747Z",
+          "content-type": "application/json; charset=utf-8",
+          "content-length": "51",
+          "etag": "W/\"33-5RIJ6WcyBiWsfRZyKAS7CgVatuE\"",
+          "date": "Tue, 16 Dec 2025 18:55:19 GMT",
+          "connection": "keep-alive",
+          "keep-alive": "timeout=5"
+        },
+        "data": {
+          "success": false,
+          "error": "Endpoint nicht gefunden"
+        },
+        "cookies": []
+      }
+    },
+    {
+      "name": "Senior-Session prüfen",
+      "reason": "Keine Senior-Cookies vorhanden"
+    }
+  ],
+  "errors": []
+}

@@ -18,11 +18,22 @@ const results = {
 // Hilfsfunktion: HTTP Request
 function makeRequest(method, path, data = null, cookies = '') {
   return new Promise((resolve, reject) => {
-    const url = new URL(path, API_BASE);
+    // Konstruiere vollständige URL
+    const fullPath = path.startsWith('http') ? path : `${API_BASE}${path.startsWith('/') ? path : '/' + path}`;
+    const url = new URL(fullPath);
+    
+    // Verwende IPv4 explizit (localhost/::1 -> 127.0.0.1)
+    const hostname = (url.hostname === 'localhost' || url.hostname === '::1') ? '127.0.0.1' : url.hostname;
+    const port = url.port || (url.protocol === 'https:' ? 443 : 3000);
+    
     const options = {
-      method,
+      hostname: hostname,
+      port: port,
+      path: url.pathname + url.search,
+      method: method,
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Host': url.host
       }
     };
     
@@ -30,7 +41,7 @@ function makeRequest(method, path, data = null, cookies = '') {
       options.headers['Cookie'] = cookies;
     }
     
-    const req = http.request(url, options, (res) => {
+    const req = http.request(options, (res) => {
       let body = '';
       res.on('data', (chunk) => { body += chunk; });
       res.on('end', () => {

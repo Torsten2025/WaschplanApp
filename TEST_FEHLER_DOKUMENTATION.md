@@ -2,68 +2,171 @@
 
 **Erstellt:** 2025-12-16  
 **Test-Skript:** `test-all-bugs.js`  
-**Status:** Server nicht erreichbar
+**Status:** ⚠️ Teilweise erfolgreich
 
 ---
 
-## ❌ Gefundene Fehler
+## ✅ Erfolgreiche Tests
 
-### 1. Server nicht erreichbar
-**Fehler:** `connect ECONNREFUSED ::1:3000`
+### 1. ✅ Admin-Login
+**Status:** FUNKTIONIERT  
+**Details:**
+- Endpoint: `POST /api/v1/auth/login`
+- Status: 200 OK
+- Session wird erstellt
+- Cookie wird gesetzt
+
+### 2. ✅ Admin-Session prüfen
+**Status:** FUNKTIONIERT  
+**Details:**
+- Endpoint: `GET /api/v1/auth/session`
+- Status: 200 OK
+- Session wird erkannt
+- User-Daten werden zurückgegeben
+
+### 3. ✅ Admin-Endpoints zugänglich
+**Status:** FUNKTIONIERT  
+**Details:**
+- Endpoint: `GET /api/v1/admin/bookings`
+- Status: 200 OK
+- Admin-Rechte werden erkannt
+
+---
+
+## ❌ Fehlgeschlagene Tests
+
+### 1. ❌ Einfaches Login (normale User)
+**Fehler:** `Status: 404, Data: {"success":false,"error":"Endpoint nicht gefunden"}`
 
 **Ursache:**
-- Server läuft möglicherweise nicht
-- IPv6-Problem (::1 statt 127.0.0.1)
-- Port 3000 ist nicht geöffnet
+- Endpoint `/api/v1/auth/login-simple` gibt 404 zurück
+- Endpoint existiert im Code (Zeile 1680)
+- Möglicherweise: Server nicht neu gestartet nach Code-Änderungen
 
 **Lösung:**
-- [x] Test-Skript angepasst: verwendet jetzt IPv4 (127.0.0.1)
-- [ ] Server starten: `npm start` oder `node server.js`
-- [ ] Prüfen ob Port 3000 verfügbar ist
+- [ ] Server neu starten
+- [ ] Prüfen ob Endpoint korrekt registriert ist
+- [ ] Prüfen ob Route-Reihenfolge korrekt ist
 
-**Betroffene Tests:**
-- Admin-Login
-- Einfaches Login (normale User)
-- Senior-Login
+**Betroffene Dateien:**
+- `server.js` (Zeile ~1680: `/auth/login-simple` Endpoint)
 
 ---
 
-## 📋 Test-Ergebnisse
+### 2. ❌ Senior-Login
+**Fehler:** `Status: 404, Data: {"success":false,"error":"Endpoint nicht gefunden"}`
 
-### Bestanden: 0
-- Keine Tests konnten durchgeführt werden (Server nicht erreichbar)
+**Ursache:**
+- Endpoint `/api/v1/auth/login-senior` gibt 404 zurück
+- Endpoint existiert im Code (Zeile 1777)
+- Möglicherweise: Server nicht neu gestartet nach Code-Änderungen
 
-### Fehlgeschlagen: 5
-1. Admin-Session prüfen (keine Cookies wegen fehlgeschlagenem Login)
-2. Admin-Endpoints zugänglich (keine Cookies)
-3. User-Session prüfen (keine Cookies)
-4. Buchung erstellen (keine Cookies)
-5. Senior-Session prüfen (keine Cookies)
+**Lösung:**
+- [ ] Server neu starten
+- [ ] Prüfen ob Endpoint korrekt registriert ist
+- [ ] Prüfen ob Route-Reihenfolge korrekt ist
 
-### Fehler: 3
-1. Admin-Login (Server nicht erreichbar)
-2. Einfaches Login (Server nicht erreichbar)
-3. Senior-Login (Server nicht erreichbar)
+**Betroffene Dateien:**
+- `server.js` (Zeile ~1777: `/auth/login-senior` Endpoint)
 
 ---
 
-## 🔧 Nächste Schritte
+### 3. ❌ User-Session prüfen
+**Fehler:** Keine User-Cookies vorhanden (wegen fehlgeschlagenem Login)
 
-1. **Server starten:**
+**Ursache:**
+- Abhängig von erfolgreichem Login
+- Wird automatisch funktionieren, wenn Login funktioniert
+
+---
+
+### 4. ❌ Buchung erstellen
+**Fehler:** Keine User-Cookies vorhanden (wegen fehlgeschlagenem Login)
+
+**Ursache:**
+- Abhängig von erfolgreichem Login
+- Wird automatisch funktionieren, wenn Login funktioniert
+
+---
+
+### 5. ❌ Senior-Session prüfen
+**Fehler:** Keine Senior-Cookies vorhanden (wegen fehlgeschlagenem Login)
+
+**Ursache:**
+- Abhängig von erfolgreichem Login
+- Wird automatisch funktionieren, wenn Login funktioniert
+
+---
+
+## 🔍 Analyse
+
+### Problem-Identifikation
+
+**Hauptproblem:** Endpoints `/auth/login-simple` und `/auth/login-senior` geben 404 zurück, obwohl sie im Code existieren.
+
+**Mögliche Ursachen:**
+1. Server wurde nicht neu gestartet nach Code-Änderungen
+2. Route-Registrierung hat ein Problem
+3. Middleware blockiert die Requests
+4. Code-Änderungen wurden nicht gespeichert
+
+**Verifikation:**
+- ✅ Admin-Login funktioniert (bestätigt, dass Server läuft)
+- ✅ API-Routen sind grundsätzlich erreichbar
+- ❌ Spezifische Endpoints geben 404 zurück
+
+---
+
+## 🔧 Lösungsvorschläge
+
+### Sofort-Maßnahmen
+
+1. **Server neu starten:**
    ```bash
-   npm start
-   # oder
+   # Server stoppen (Ctrl+C)
+   # Dann neu starten:
    node server.js
    ```
 
-2. **Tests erneut ausführen:**
-   ```bash
-   node test-all-bugs.js
-   ```
+2. **Code-Verifikation:**
+   - Prüfen ob Endpoints wirklich im Code sind
+   - Prüfen ob Route-Registrierung korrekt ist
+   - Prüfen ob Middleware die Requests blockiert
 
-3. **Fehler dokumentieren und beheben**
+3. **Manuelle Tests:**
+   ```bash
+   # Test mit curl/PowerShell
+   Invoke-WebRequest -Uri "http://127.0.0.1:3000/api/v1/auth/login-simple" -Method POST -ContentType "application/json" -Body '{"name":"TestUser"}'
+   ```
 
 ---
 
-**Hinweis:** Die Tests können erst durchgeführt werden, wenn der Server läuft.
+## 📊 Test-Zusammenfassung
 
+### Bestanden: 3/8 (37.5%)
+- ✅ Admin-Login
+- ✅ Admin-Session prüfen
+- ✅ Admin-Endpoints zugänglich
+
+### Fehlgeschlagen: 5/8 (62.5%)
+- ❌ Einfaches Login (normale User)
+- ❌ User-Session prüfen
+- ❌ Buchung erstellen
+- ❌ Senior-Login
+- ❌ Senior-Session prüfen
+
+### Fehler: 0/8 (0%)
+- Keine kritischen Fehler
+
+---
+
+## 🎯 Nächste Schritte
+
+1. **Server neu starten** (wichtigste Maßnahme)
+2. **Tests erneut ausführen**
+3. **Fehler beheben** falls weiterhin vorhanden
+4. **Dokumentation aktualisieren**
+
+---
+
+**Hinweis:** Die meisten Fehler sind abhängig vom Login. Sobald Login funktioniert, sollten die anderen Tests auch funktionieren.
