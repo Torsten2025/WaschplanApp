@@ -122,8 +122,12 @@ const logger = {
 // In Produktion sollte origin auf spezifische Domains beschränkt werden
 const allowedOrigins = process.env.ALLOWED_ORIGIN 
   ? process.env.ALLOWED_ORIGIN.split(',').map(o => o.trim())
-  : (process.env.NODE_ENV === 'production' 
-      ? ['http://localhost:3000'] // In Produktion: Spezifische Origins
+  : (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true'
+      ? [
+          'http://localhost:3000',
+          'https://waschplanapp.onrender.com', // Render-URL automatisch erlauben
+          'https://*.onrender.com' // Alle Render-Subdomains erlauben (als Fallback)
+        ]
       : ['http://localhost:3000', 'http://127.0.0.1:3000']); // Development: Lokale Origins
 
 // CORS-Konfiguration mit Validierung
@@ -135,7 +139,7 @@ app.use(cors({
     }
     
     // In Development: Erlaube alle lokalen Origins
-    if (process.env.NODE_ENV !== 'production') {
+    if (process.env.NODE_ENV !== 'production' && process.env.RENDER !== 'true') {
       if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
         return callback(null, true);
       }
@@ -145,6 +149,13 @@ app.use(cors({
     if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
       callback(null, true);
     } else {
+      // Prüfe auf Render-Subdomains (z.B. https://waschplanapp.onrender.com)
+      const isRenderDomain = origin.match(/^https:\/\/[\w-]+\.onrender\.com$/);
+      if (isRenderDomain) {
+        logger.debug('CORS: Render-Domain erlaubt', { origin });
+        return callback(null, true);
+      }
+      
       logger.warn('CORS: Origin nicht erlaubt', { origin, allowedOrigins });
       callback(new Error('CORS: Origin nicht erlaubt'));
     }
