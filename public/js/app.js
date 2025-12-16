@@ -2496,14 +2496,22 @@ function renderMonthSingleGrid(containerId, machineList, daysInMonth) {
     // Tag-Zelle
     tableHTML += `<td class="day-cell ${isSunday ? 'sunday' : ''}">${day}<br><span class="day-name">${dayName}</span></td>`;
     
+    // Normalisiere Datum für Vergleich (Hilfsfunktion für Monatsansicht)
+    const normalizeDate = (d) => {
+      if (!d) return null;
+      return typeof d === 'string' ? d.trim().split('T')[0].split(' ')[0] : String(d).split('T')[0].split(' ')[0];
+    };
+    const normalizedDate = normalizeDate(date);
+    
     // Buchungs-Zellen
     machineList.forEach(machine => {
       TIME_SLOTS_TABLE.forEach(slot => {
-        const booking = bookings.find(b => 
-          b.machine_id === machine.id && 
-          b.date === date && 
-          b.slot === slot.label
-        );
+        const booking = bookings.find(b => {
+          const bDate = normalizeDate(b.date);
+          return b.machine_id === machine.id && 
+                 bDate === normalizedDate && 
+                 b.slot === slot.label;
+        });
         // Verwende currentUser.username wenn eingeloggt, sonst currentUserName
         const userName = currentUser?.username || currentUserName;
         const isOwnBooking = booking && booking.user_name === userName;
