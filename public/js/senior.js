@@ -41,10 +41,10 @@ async function initializeSeniorView() {
     currentUserName = storage.getItem('waschmaschine_user_name') || '';
   }
   
-  // Erleichterte Anmeldung: Automatisches Login wenn Name vorhanden
+  // Erleichterte Anmeldung: Automatisches Senior-Login wenn Name vorhanden
   if (currentUserName) {
     try {
-      const user = await loginSimple(currentUserName);
+      const user = await loginSenior(currentUserName);
       if (typeof logger !== 'undefined') {
         logger.info('Erleichterte Anmeldung erfolgreich (Senioren)', { username: user.username });
       }
@@ -323,9 +323,9 @@ async function showCellInput(cell, machineId, date, slot) {
   currentCell = { cell, machineId, date, slot };
   
   // Erleichterte Anmeldung: Wenn Name vorhanden aber nicht eingeloggt, automatisch einloggen
-  if (currentUserName && typeof loginSimple === 'function') {
+  if (currentUserName && typeof loginSenior === 'function') {
     try {
-      const user = await loginSimple(currentUserName);
+      const user = await loginSenior(currentUserName);
       if (typeof logger !== 'undefined') {
         logger.debug('Erleichterte Anmeldung beim Zellklick (Senioren)', { username: user.username });
       }
@@ -369,10 +369,10 @@ async function saveCellInput() {
   const { machineId, date, slot } = currentCell;
   
   try {
-    // Erleichterte Anmeldung: Automatisches Login vor Buchung
-    if (typeof loginSimple === 'function') {
+    // Erleichterte Anmeldung: Automatisches Senior-Login vor Buchung
+    if (typeof loginSenior === 'function') {
       try {
-        await loginSimple(name);
+        await loginSenior(name);
         if (typeof logger !== 'undefined') {
           logger.debug('Erleichterte Anmeldung vor Buchung (Senioren)', { username: name });
         }
@@ -384,12 +384,12 @@ async function saveCellInput() {
       }
     }
     
-    // Buchung erstellen (user_name wird NICHT mehr gesendet - kommt aus Session)
+    // Buchung erstellen (user_name wird mitgesendet - Backend prüft Session)
     const booking = await createBooking({
       machine_id: machineId,
       date: date,
-      slot: slot
-      // user_name wird automatisch aus der Session genommen (Backend)
+      slot: slot,
+      user_name: name  // Name wird mitgesendet (Backend prüft ob es mit Session übereinstimmt)
     });
     
     // Visuelles Feedback: Zelle blinkt kurz grün

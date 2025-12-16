@@ -666,8 +666,16 @@ async function handleSlotClick(machineId, slotLabel) {
     return;
   }
   
-  // Prüfe ob eingeloggt - wenn nicht, mache einfaches Login
-  if (!currentUser || currentUser.username !== userName) {
+  // SICHERHEIT: Prüfe ob eingeloggt - wenn ja, muss Name mit Session übereinstimmen
+  if (currentUser) {
+    // User ist bereits eingeloggt - prüfe ob Name übereinstimmt
+    if (currentUser.username !== userName) {
+      showMessage(`Sie sind bereits als "${currentUser.username}" angemeldet. Bitte melden Sie sich zuerst ab, um sich als anderer Benutzer anzumelden.`, 'error');
+      return;
+    }
+    // Name stimmt überein - weiter mit Buchung
+  } else {
+    // Nicht eingeloggt - mache einfaches Login
     try {
       showMessage('Melde Sie an...', 'info');
       const user = await loginSimple(userName);

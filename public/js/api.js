@@ -695,6 +695,48 @@ async function loginSimple(name) {
 }
 
 /**
+ * Senior-Login (nur Name, kein Passwort, erstellt User mit Rolle 'senior')
+ * @param {string} name - Name des Benutzers
+ * @returns {Promise<Object>} Benutzer-Objekt
+ */
+async function loginSenior(name) {
+  try {
+    const response = await fetchWithRetry(`${API_BASE_URL}/auth/login-senior`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Wichtig für Sessions
+      body: JSON.stringify({ name })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ 
+        error: 'Unbekannter Fehler',
+        message: 'Unbekannter Fehler'
+      }));
+      
+      const errorMessage = errorData.error || 
+                           errorData.message || 
+                           (Array.isArray(errorData.details) ? errorData.details[0] : errorData.details) || 
+                           `HTTP error! status: ${response.status}`;
+      
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    return result.success && result.data ? result.data : result;
+  } catch (error) {
+    if (typeof logger !== 'undefined') {
+      logger.error('Fehler beim Senior-Login', error);
+    } else {
+      console.error('Fehler beim Senior-Login:', error);
+    }
+    throw error;
+  }
+}
+
+/**
  * Meldet einen Benutzer ab
  * @returns {Promise<Object>} Bestätigungs-Objekt
  */
