@@ -65,6 +65,83 @@ function setupEventListeners() {
       changePasswordBtn.addEventListener('click', showChangePasswordModal);
     }
     
+    // Passwort-Ändern-Warnung-Button
+    const changePasswordWarningBtn = document.getElementById('change-password-warning-btn');
+    if (changePasswordWarningBtn) {
+      changePasswordWarningBtn.addEventListener('click', showChangePasswordModal);
+    }
+    
+    // Refresh-Buchungen-Button
+    const refreshBookingsBtn = document.getElementById('refresh-bookings-btn');
+    if (refreshBookingsBtn) {
+      refreshBookingsBtn.addEventListener('click', loadBookings);
+    }
+    
+    // Neue Maschine-Button
+    const newMachineBtn = document.getElementById('new-machine-btn');
+    if (newMachineBtn) {
+      newMachineBtn.addEventListener('click', showMachineForm);
+    }
+    
+    // Neuer Benutzer-Button
+    const newUserBtn = document.getElementById('new-user-btn');
+    if (newUserBtn) {
+      newUserBtn.addEventListener('click', showUserForm);
+    }
+    
+    // Modal-Close-Buttons
+    const closeMachineModalBtn = document.getElementById('close-machine-modal-btn');
+    if (closeMachineModalBtn) {
+      closeMachineModalBtn.addEventListener('click', closeMachineModal);
+    }
+    
+    const closeUserModalBtn = document.getElementById('close-user-modal-btn');
+    if (closeUserModalBtn) {
+      closeUserModalBtn.addEventListener('click', closeUserModal);
+    }
+    
+    // Event-Delegation für dynamisch generierte Buttons (Buchungen, Benutzer, Maschinen)
+    document.addEventListener('click', (e) => {
+      // Delete-Booking-Button
+      if (e.target && e.target.classList.contains('btn-delete') && e.target.dataset.bookingId) {
+        deleteBooking(parseInt(e.target.dataset.bookingId));
+      }
+      // Edit-User-Button
+      if (e.target && e.target.classList.contains('btn-edit') && e.target.dataset.userId) {
+        editUser(
+          parseInt(e.target.dataset.userId),
+          e.target.dataset.username || '',
+          e.target.dataset.role || 'user'
+        );
+      }
+      // Delete-User-Button
+      if (e.target && e.target.classList.contains('btn-delete') && e.target.dataset.userId) {
+        deleteUser(parseInt(e.target.dataset.userId));
+      }
+      // Edit-Machine-Button
+      if (e.target && e.target.classList.contains('btn-edit') && e.target.dataset.machineId) {
+        editMachine(
+          parseInt(e.target.dataset.machineId),
+          e.target.dataset.machineName || '',
+          e.target.dataset.machineType || 'washer'
+        );
+      }
+      // Delete-Machine-Button
+      if (e.target && e.target.classList.contains('btn-delete') && e.target.dataset.machineId) {
+        deleteMachine(parseInt(e.target.dataset.machineId));
+      }
+      // Retry-Buttons
+      if (e.target && e.target.classList.contains('retry-btn')) {
+        if (e.target.dataset.action === 'loadBookings') {
+          loadBookings();
+        } else if (e.target.dataset.action === 'loadUsers') {
+          loadUsers();
+        } else if (e.target.dataset.action === 'loadMachines') {
+          loadMachines();
+        }
+      }
+    });
+    
     // Passwort-Änderung-Formular
     const changePasswordForm = document.getElementById('change-password-form');
     if (changePasswordForm) {
@@ -705,7 +782,7 @@ async function loadBookings() {
                 <td>${escapeHtml(booking.machine_name || 'Unbekannt')} (${booking.machine_type === 'washer' ? 'Waschmaschine' : booking.machine_type === 'tumbler' ? 'Tumbler' : 'Trocknungsraum'})</td>
                 <td>${escapeHtml(booking.user_name || 'Unbekannt')}</td>
                 <td>
-                  <button class="btn-admin btn-delete" onclick="deleteBooking(${booking.id})">Löschen</button>
+                  <button class="btn-admin btn-delete" data-booking-id="${booking.id}">Löschen</button>
                 </td>
               </tr>
             `;
@@ -794,7 +871,7 @@ async function loadBookings() {
       <div class="error-fallback">
         <p style="color: #e74c3c; font-weight: bold;">Fehler beim Laden der Buchungen</p>
         <p style="color: #666; font-size: 0.9rem;">${escapeHtml(error.message || 'Unbekannter Fehler')}</p>
-        <button class="btn-admin" onclick="loadBookings()" style="margin-top: 10px;">Erneut versuchen</button>
+        <button class="btn-admin retry-btn" data-action="loadBookings" style="margin-top: 10px;">Erneut versuchen</button>
       </div>
     `;
     if (typeof logger !== 'undefined') {
@@ -852,8 +929,8 @@ async function loadMachines() {
                 <td>${escapeHtml(machine.name || 'Unbekannt')}</td>
                 <td>${machine.type === 'washer' ? 'Waschmaschine' : machine.type === 'tumbler' ? 'Tumbler' : 'Trocknungsraum'}</td>
                 <td>
-                  <button class="btn-admin btn-edit" onclick="editMachine(${machine.id}, '${escapeHtml(machine.name || '')}', '${machine.type || 'washer'}')">Bearbeiten</button>
-                  <button class="btn-admin btn-delete" onclick="deleteMachine(${machine.id})">Löschen</button>
+                  <button class="btn-admin btn-edit" data-machine-id="${machine.id}" data-machine-name="${escapeHtml(machine.name || '')}" data-machine-type="${machine.type || 'washer'}">Bearbeiten</button>
+                  <button class="btn-admin btn-delete" data-machine-id="${machine.id}">Löschen</button>
                 </td>
               </tr>
             `).join('')}
@@ -868,7 +945,7 @@ async function loadMachines() {
       <div class="error-fallback">
         <p style="color: #e74c3c; font-weight: bold;">Fehler beim Laden der Maschinen</p>
         <p style="color: #666; font-size: 0.9rem;">${escapeHtml(error.message || 'Unbekannter Fehler')}</p>
-        <button class="btn-admin" onclick="loadMachines()" style="margin-top: 10px;">Erneut versuchen</button>
+        <button class="btn-admin retry-btn" data-action="loadMachines" style="margin-top: 10px;">Erneut versuchen</button>
       </div>
     `;
     if (typeof logger !== 'undefined') {
@@ -930,8 +1007,8 @@ async function loadUsers() {
                 <td>${user.created_at ? new Date(user.created_at).toLocaleDateString('de-DE') : '-'}</td>
                 <td>${user.last_login ? new Date(user.last_login).toLocaleString('de-DE') : 'Nie'}</td>
                 <td>
-                  <button class="btn-admin btn-edit" onclick="editUser(${user.id}, '${escapeHtml(user.username || '')}', '${user.role || 'user'}')">Bearbeiten</button>
-                  <button class="btn-admin btn-delete" onclick="deleteUser(${user.id})">Löschen</button>
+                  <button class="btn-admin btn-edit" data-user-id="${user.id}" data-username="${escapeHtml(user.username || '')}" data-role="${user.role || 'user'}">Bearbeiten</button>
+                  <button class="btn-admin btn-delete" data-user-id="${user.id}">Löschen</button>
                 </td>
               </tr>
             `).join('')}
@@ -946,7 +1023,7 @@ async function loadUsers() {
       <div class="error-fallback">
         <p style="color: #e74c3c; font-weight: bold;">Fehler beim Laden der Benutzer</p>
         <p style="color: #666; font-size: 0.9rem;">${escapeHtml(error.message || 'Unbekannter Fehler')}</p>
-        <button class="btn-admin" onclick="loadUsers()" style="margin-top: 10px;">Erneut versuchen</button>
+        <button class="btn-admin retry-btn" data-action="loadUsers" style="margin-top: 10px;">Erneut versuchen</button>
       </div>
     `;
     if (typeof logger !== 'undefined') {

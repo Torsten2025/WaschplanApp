@@ -48,7 +48,7 @@
             <div id="password-warning" class="password-warning">
                 <div class="password-warning-box">
                     <strong>⚠️ Sicherheitswarnung:</strong> Sie verwenden noch das Standard-Passwort. Bitte ändern Sie es sofort!
-                    <button onclick="showChangePasswordModal()" class="password-warning-button">Jetzt ändern</button>
+                    <button id="change-password-warning-btn" class="password-warning-button">Jetzt ändern</button>
                 </div>
             </div>
 
@@ -64,7 +64,7 @@
                     <h2>Buchungen verwalten</h2>
                     <div>
                         <input type="date" id="bookings-filter-date" class="section-header-input">
-                        <button onclick="loadBookings()" class="btn-primary">Aktualisieren</button>
+                        <button id="refresh-bookings-btn" class="btn-primary">Aktualisieren</button>
                     </div>
                 </div>
                 <div id="bookings-container">
@@ -76,7 +76,7 @@
             <section id="machines-tab" class="admin-section">
                 <div class="section-header-row">
                     <h2>Maschinen verwalten</h2>
-                    <button onclick="showMachineForm()" class="btn-primary">+ Neue Maschine</button>
+                    <button id="new-machine-btn" class="btn-primary">+ Neue Maschine</button>
                 </div>
                 <div id="machines-container">
                     <p>Lädt...</p>
@@ -87,7 +87,7 @@
             <section id="users-tab" class="admin-section">
                 <div class="section-header-row">
                     <h2>Benutzer verwalten</h2>
-                    <button onclick="showUserForm()" class="btn-primary">+ Neuer Benutzer</button>
+                    <button id="new-user-btn" class="btn-primary">+ Neuer Benutzer</button>
                 </div>
                 <div id="users-container">
                     <p>Lädt...</p>
@@ -114,7 +114,7 @@
                     </select>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" onclick="closeMachineModal()" class="btn-secondary">Abbrechen</button>
+                    <button type="button" id="close-machine-modal-btn" class="btn-secondary">Abbrechen</button>
                     <button type="submit" class="btn-primary">Speichern</button>
                 </div>
             </form>
@@ -144,7 +144,7 @@
                     </select>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" onclick="closeUserModal()" class="btn-secondary">Abbrechen</button>
+                    <button type="button" id="close-user-modal-btn" class="btn-secondary">Abbrechen</button>
                     <button type="submit" class="btn-primary">Speichern</button>
                 </div>
             </form>
