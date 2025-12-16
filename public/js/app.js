@@ -654,6 +654,12 @@ async function handleSlotClick(machineId, slotLabel) {
   const dateInput = document.getElementById('date-input');
   const nameInput = document.getElementById('name-input');
   
+  // Null-Checks für DOM-Elemente
+  if (!dateInput) {
+    showMessage('Fehler: Datum-Eingabefeld nicht gefunden. Bitte laden Sie die Seite neu.', 'error');
+    return;
+  }
+  
   let date = dateInput.value;
   const userName = nameInput ? nameInput.value.trim() : '';
   
@@ -2023,7 +2029,8 @@ function switchView(view) {
     if (inputSection) inputSection.style.display = 'block';
     if (machinesSection) machinesSection.style.display = 'block';
     // Aktuelle Buchungen laden
-    const date = document.getElementById('date-input').value;
+    const dateInput = document.getElementById('date-input');
+    const date = dateInput ? dateInput.value : null;
     if (date) loadBookings(date);
   } else if (view === 'week') {
     if (weekSection) weekSection.style.display = 'block';
@@ -2556,8 +2563,16 @@ async function handleLogin() {
  * Behandelt Registrierung
  */
 async function handleRegister() {
-  const username = document.getElementById('register-username').value.trim();
-  const password = document.getElementById('register-password').value;
+  const usernameInput = document.getElementById('register-username');
+  const passwordInput = document.getElementById('register-password');
+  
+  if (!usernameInput || !passwordInput) {
+    showMessage('Fehler: Registrierungsformular nicht gefunden. Bitte laden Sie die Seite neu.', 'error');
+    return;
+  }
+  
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value;
   
   if (!username || !password) {
     showMessage('Bitte geben Sie Benutzername und Passwort ein.', 'error');
