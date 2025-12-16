@@ -114,7 +114,7 @@ function getRandomDate() {
   return date.toISOString().split('T')[0];
 }
 
-// Zufälligen Slot auswählen
+// Zufälligen Slot auswählen (muss mit server.js übereinstimmen)
 const TIME_SLOTS = [
   { start: '07:00', end: '12:00', label: '07:00-12:00' },
   { start: '12:00', end: '17:00', label: '12:00-17:00' },
