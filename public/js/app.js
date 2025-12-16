@@ -2278,15 +2278,6 @@ function renderWeekSingleGrid(containerId, machineList, dates) {
   });
 }
 
-/**
- * Zeit-Slots für Tabellen-Ansichten (Woche und Monat)
- */
-const TIME_SLOTS_TABLE = [
-  { label: '07:00-12:00', start: '07:00', end: '12:00' },
-  { label: '12:00-17:00', start: '12:00', end: '17:00' },
-  { label: '17:00-21:00', start: '17:00', end: '21:00' }
-];
-
 async function loadMonthView() {
   try {
     const monthContainer = document.getElementById('month-container');
