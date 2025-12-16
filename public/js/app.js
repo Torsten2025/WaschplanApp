@@ -1106,10 +1106,10 @@ async function handleSlotClick(machineId, slotLabel) {
 /**
  * Behandelt das Löschen einer Buchung
  */
-async function handleDeleteBooking(bookingId, slotLabel) {
+async function handleDeleteBooking(bookingId) {
   const confirmed = await showModal(
     'Buchung löschen',
-    `Möchten Sie die Buchung für "${escapeHtml(slotLabel)}" wirklich löschen?`,
+    'Möchten Sie diese Buchung wirklich löschen?',
     'Löschen'
   );
   
