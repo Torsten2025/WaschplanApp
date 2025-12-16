@@ -1846,9 +1846,23 @@ apiV1.post('/auth/login', async (req, res) => {
     logger.error('Fehler beim Login', error, { 
       errorMessage: error.message,
       errorStack: error.stack,
-      username: req.body?.username
+      username: req.body?.username,
+      hasSession: !!req.session,
+      sessionId: req.sessionID,
+      dbAvailable: !!db
     });
-    apiResponse.error(res, 'Fehler beim Login', 500);
+    
+    // Detailliertere Fehlermeldung für Debugging
+    let errorMessage = 'Fehler beim Login';
+    if (error.message.includes('SQLITE') || error.message.includes('database')) {
+      errorMessage = 'Datenbankfehler beim Login. Bitte versuchen Sie es später erneut.';
+    } else if (error.message.includes('bcrypt')) {
+      errorMessage = 'Fehler bei der Passwort-Validierung.';
+    } else if (!req.session) {
+      errorMessage = 'Session-Fehler. Bitte laden Sie die Seite neu.';
+    }
+    
+    apiResponse.error(res, errorMessage, 500);
   }
 });
 
