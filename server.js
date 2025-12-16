@@ -157,15 +157,9 @@ if (!existsSync(SESSIONS_DIR)) {
   });
 }
 
-app.use(session({
-  store: new FileStore({
-    path: SESSIONS_DIR,
-    ttl: 86400, // 24 Stunden in Sekunden
-    retries: 1,
-    logFn: (message) => {
-      logger.debug(`Session-File-Store: ${message}`);
-    }
-  }),
+// Session-Konfiguration
+// Auf Render: FileStore kann problematisch sein, daher Fallback auf Memory-Store
+const sessionConfig = {
   secret: process.env.SESSION_SECRET || 'waschmaschine-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
@@ -175,7 +169,30 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 Stunden
     sameSite: 'lax' // Wichtig für CORS und Cross-Site-Requests
   }
-}));
+};
+
+// Versuche FileStore zu verwenden, fallback auf Memory-Store (für Render)
+try {
+  // Prüfe ob Sessions-Verzeichnis existiert und beschreibbar ist
+  if (existsSync(SESSIONS_DIR)) {
+    sessionConfig.store = new FileStore({
+      path: SESSIONS_DIR,
+      ttl: 86400, // 24 Stunden in Sekunden
+      retries: 1,
+      logFn: (message) => {
+        logger.debug(`Session-File-Store: ${message}`);
+      }
+    });
+    logger.info('Session-File-Store aktiviert', { path: SESSIONS_DIR });
+  } else {
+    logger.warn('Sessions-Verzeichnis existiert nicht, verwende Memory-Store', { path: SESSIONS_DIR });
+  }
+} catch (error) {
+  logger.warn('FileStore konnte nicht initialisiert werden, verwende Memory-Store', { error: error.message });
+  // Memory-Store wird automatisch verwendet wenn kein store angegeben
+}
+
+app.use(session(sessionConfig));
 
 // Statische Dateien werden NACH API-Routen registriert (siehe unten)
 
@@ -1452,9 +1469,23 @@ setInterval(updateSystemMetrics, 30000);
  * Middleware: Prüft ob Benutzer eingeloggt ist
  */
 function requireAuth(req, res, next) {
+  logger.debug('requireAuth Middleware', {
+    hasSession: !!req.session,
+    hasUserId: !!(req.session && req.session.userId),
+    sessionId: req.sessionID,
+    userId: req.session?.userId,
+    username: req.session?.username,
+    role: req.session?.role
+  });
+  
   if (req.session && req.session.userId) {
     next();
   } else {
+    logger.warn('requireAuth: Keine gültige Session', {
+      hasSession: !!req.session,
+      sessionId: req.sessionID,
+      cookies: req.headers.cookie
+    });
     apiResponse.error(res, 'Authentifizierung erforderlich', 401);
   }
 }
@@ -1463,9 +1494,25 @@ function requireAuth(req, res, next) {
  * Middleware: Prüft ob Benutzer Admin ist
  */
 function requireAdmin(req, res, next) {
+  logger.debug('requireAdmin Middleware', {
+    hasSession: !!req.session,
+    hasUserId: !!(req.session && req.session.userId),
+    isAdmin: !!(req.session && req.session.role === 'admin'),
+    sessionId: req.sessionID,
+    userId: req.session?.userId,
+    username: req.session?.username,
+    role: req.session?.role
+  });
+  
   if (req.session && req.session.userId && req.session.role === 'admin') {
     next();
   } else {
+    logger.warn('requireAdmin: Keine Admin-Rechte', {
+      hasSession: !!req.session,
+      hasUserId: !!(req.session && req.session.userId),
+      role: req.session?.role,
+      sessionId: req.sessionID
+    });
     apiResponse.error(res, 'Admin-Rechte erforderlich', 403);
   }
 }
@@ -1669,8 +1716,24 @@ apiV1.post('/auth/login', async (req, res) => {
       if (err) {
         logger.error('Fehler beim Speichern der Session', err);
       } else {
-        logger.debug('Session erfolgreich gespeichert', { sessionId: req.sessionID });
+        logger.info('Session erfolgreich gespeichert', { 
+          sessionId: req.sessionID,
+          userId: req.session.userId,
+          username: req.session.username,
+          role: req.session.role
+        });
       }
+    });
+    
+    // WICHTIG: Warte auf Session-Speicherung bevor Response gesendet wird
+    // Für FileStore: Session muss gespeichert sein bevor Cookie gesetzt wird
+    await new Promise((resolve) => {
+      req.session.save((err) => {
+        if (err) {
+          logger.error('Fehler beim finalen Speichern der Session', err);
+        }
+        resolve();
+      });
     });
     
     // Last-Login aktualisieren
@@ -2572,15 +2635,27 @@ apiV1.get('/bookings/month', async (req, res) => {
 });
 
 // API-Route: Buchung erstellen
-apiV1.post('/bookings', async (req, res) => {
+// WICHTIG: Nur für eingeloggte Benutzer - Authentifizierung erforderlich
+apiV1.post('/bookings', requireAuth, async (req, res) => {
   try {
-    const { machine_id, date, slot, user_name } = req.body;
+    const { machine_id, date, slot } = req.body;
+    
+    // user_name aus Session nehmen (nicht aus Request-Body - Sicherheit!)
+    const validatedUserName = req.session?.username;
+    
+    if (!validatedUserName) {
+      logger.warn('Buchung erstellen: Kein Benutzername in Session', {
+        hasSession: !!req.session,
+        sessionId: req.sessionID
+      });
+      apiResponse.unauthorized(res, 'Sie müssen eingeloggt sein, um Buchungen zu erstellen. Bitte melden Sie sich an.');
+      return;
+    }
     
     // Validierung und Normalisierung: Pflichtfelder
     const validatedMachineId = validateInteger(machine_id, 'machine_id');
     const validatedDate = date ? (typeof date === 'string' ? date.trim() : String(date)) : null;
     const validatedSlot = validateAndTrimString(slot, 'slot');
-    const validatedUserName = validateAndTrimString(user_name, 'user_name');
     
     // Prüfe ob Pflichtfelder vorhanden sind
     if (!validatedMachineId) {
@@ -2598,12 +2673,6 @@ apiV1.post('/bookings', async (req, res) => {
     if (!validatedSlot) {
       logger.warn('Buchung erstellen: slot fehlt oder ist leer', { slot });
       apiResponse.validationError(res, 'slot ist erforderlich und darf nicht leer sein');
-      return;
-    }
-    
-    if (!validatedUserName) {
-      logger.warn('Buchung erstellen: user_name fehlt oder ist leer', { user_name });
-      apiResponse.validationError(res, 'user_name ist erforderlich und darf nicht leer sein');
       return;
     }
     

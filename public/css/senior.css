@@ -1,0 +1,257 @@
+/* Basis-Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 18px;
+    line-height: 1.5;
+    background-color: #f5f5f5;
+    color: #333;
+    overflow-x: auto;
+}
+
+.senior-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.senior-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.senior-header h1 {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #20C997;
+}
+
+.month-selector {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.month-display {
+    font-size: 24px;
+    font-weight: 600;
+    min-width: 200px;
+}
+
+.nav-btn {
+    font-size: 24px;
+    padding: 10px 20px;
+    background-color: #20C997;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    min-width: 60px;
+    min-height: 60px;
+    transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+    background-color: #1aa87a;
+}
+
+.nav-btn:active {
+    transform: scale(0.95);
+}
+
+/* Grid-Layout */
+.grid-container {
+    display: grid;
+    gap: 2px;
+    background-color: #ddd;
+    border: 2px solid #333;
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* Grid-Header (Maschinen×Slots) */
+.grid-header {
+    display: contents;
+}
+
+.grid-header-cell {
+    background-color: #20C997;
+    color: white;
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px;
+    min-width: 120px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.grid-header-cell.grid-day-label {
+    background-color: #1aa87a;
+    position: sticky;
+    left: 0;
+    z-index: 11;
+    border-right: 2px solid #333;
+}
+
+/* Grid-Zeilen (Tage) */
+.grid-row {
+    display: contents;
+}
+
+.grid-day-label {
+    background-color: #f0f0f0;
+    padding: 15px 10px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 16px;
+    min-width: 80px;
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    border-right: 2px solid #333;
+}
+
+/* Grid-Zellen (Buchungen) */
+.grid-cell {
+    background-color: #e6faf5; /* Frei: Hellgrün */
+    border: 1px solid #20C997;
+    padding: 10px;
+    min-height: 60px;
+    min-width: 120px;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+.grid-cell:hover {
+    background-color: #d4f5e8;
+}
+
+/* Gebucht (fremd) */
+.grid-cell.booked {
+    background-color: #f8d7da; /* Gebucht: Hellrot */
+    border-color: #dc3545;
+    color: #721c24;
+}
+
+.grid-cell.booked:hover {
+    background-color: #f5c6cb;
+}
+
+/* Eigene Buchung */
+.grid-cell.own-booking {
+    background-color: #d1ecf1; /* Eigene Buchung: Hellblau */
+    border-color: #0c5460;
+    color: #0c5460;
+}
+
+.grid-cell.own-booking:hover {
+    background-color: #bee5eb;
+}
+
+/* Sonntag (grau) */
+.grid-cell.sunday {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.grid-cell.sunday:hover {
+    background-color: #e9ecef;
+}
+
+/* Input-Overlay */
+.input-overlay {
+    position: fixed;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 3px solid #20C997;
+    border-radius: 8px;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.input-overlay.active {
+    display: flex;
+}
+
+.cell-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    text-align: center;
+    padding: 10px;
+    font-weight: 600;
+}
+
+.cell-input:focus {
+    outline: none;
+}
+
+/* Visuelles Feedback */
+.success-flash {
+    animation: flashGreen 0.5s;
+}
+
+@keyframes flashGreen {
+    0%, 100% { background-color: #e6faf5; }
+    50% { background-color: #20C997; }
+}
+
+/* Touch-Optimierung */
+@media (hover: none) {
+    .grid-cell {
+        min-height: 80px;
+        font-size: 18px;
+    }
+    
+    .nav-btn {
+        min-width: 80px;
+        min-height: 80px;
+        font-size: 28px;
+    }
+}
+
+/* Tablet-Optimierung */
+@media (min-width: 768px) {
+    .senior-container {
+        padding: 30px;
+    }
+    
+    .grid-cell {
+        min-height: 70px;
+        font-size: 18px;
+    }
+}
+
+/* Druck-Optimierung */
+@media print {
+    .senior-header {
+        page-break-after: avoid;
+    }
+    
+    .grid-container {
+        page-break-inside: avoid;
+    }
+}
+
