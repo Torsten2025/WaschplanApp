@@ -2572,8 +2572,29 @@ function renderMonthSingleGrid(containerId, machineList, daysInMonth) {
  * Behandelt Slot-Click für Monats- und Wochenansicht (mit Datum aus Zelle)
  */
 async function handleSlotClickForMonthWeek(machineId, slotLabel, date) {
+  // Validierung: Datum muss vorhanden sein
+  if (!date) {
+    showMessage('Fehler: Datum nicht gefunden. Bitte laden Sie die Seite neu.', 'error');
+    return;
+  }
+  
+  // Stelle sicher, dass das Datum im korrekten Format ist
+  date = date.trim();
+  
+  // Prüfe ob Datum in Vergangenheit liegt
+  const selectedDate = new Date(date + 'T00:00:00');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  if (selectedDate < today) {
+    showMessage('Das ausgewählte Datum liegt in der Vergangenheit. Bitte wählen Sie ein zukünftiges Datum.', 'error');
+    return;
+  }
+  
+  // SICHERHEIT: Prüfe ob eingeloggt - Passwort ist jetzt immer erforderlich
   if (!currentUser) {
     showMessage('Bitte melden Sie sich zuerst an, um eine Buchung zu erstellen.', 'error');
+    // Öffne Login-Modal
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) {
       loginBtn.click();
@@ -2589,8 +2610,62 @@ async function handleSlotClickForMonthWeek(machineId, slotLabel, date) {
     return;
   }
   
+  // Prüfe Online-Status
+  if (typeof checkOnlineStatus === 'function' && !checkOnlineStatus()) {
+    showMessage('Keine Internetverbindung. Buchung kann nicht erstellt werden.', 'error');
+    return;
+  }
+  
+  // Bestätigung mit Modal (wie in Tagesansicht)
+  const dateFormatted = formatDateForDisplay ? formatDateForDisplay(date) : date;
+  
+  if (typeof logger !== 'undefined') {
+    logger.debug('Zeige Bestätigungs-Modal (Monat/Woche)', {
+      machineId,
+      slotLabel,
+      date,
+      dateFormatted,
+      userName
+    });
+  } else {
+    console.log('Zeige Bestätigungs-Modal (Monat/Woche):', { machineId, slotLabel, date, userName });
+  }
+  
+  const confirmed = await showModal(
+    'Buchung bestätigen',
+    `Möchten Sie den Slot "${escapeHtml(slotLabel)}" für ${escapeHtml(dateFormatted)} buchen?`
+  );
+  
+  if (typeof logger !== 'undefined') {
+    logger.debug('Modal-Bestätigung erhalten (Monat/Woche)', { confirmed });
+  } else {
+    console.log('Modal-Bestätigung erhalten (Monat/Woche):', confirmed);
+  }
+  
+  if (!confirmed) {
+    if (typeof logger !== 'undefined') {
+      logger.debug('Buchung abgebrochen - Modal nicht bestätigt (Monat/Woche)');
+    } else {
+      console.log('Buchung abgebrochen - Modal nicht bestätigt (Monat/Woche)');
+    }
+    return;
+  }
+  
   try {
-    // createBooking erwartet ein Objekt mit machine_id, date, slot, user_name
+    if (typeof logger !== 'undefined') {
+      logger.debug('Starte Buchungserstellung (Monat/Woche)', {
+        machineId,
+        slotLabel,
+        date,
+        userName
+      });
+    } else {
+      console.log('Starte Buchungserstellung (Monat/Woche):', { machineId, slotLabel, date, userName });
+    }
+    
+    showMessage('Buchung wird erstellt...', 'info');
+    
+    // Debug: Logge die zu sendenden Daten
     const bookingData = {
       machine_id: machineId,
       date: date,
@@ -2598,7 +2673,21 @@ async function handleSlotClickForMonthWeek(machineId, slotLabel, date) {
       user_name: userName
     };
     
-    await createBooking(bookingData);
+    if (typeof logger !== 'undefined') {
+      logger.debug('Erstelle Buchung (Monat/Woche)', bookingData);
+    } else {
+      console.log('Erstelle Buchung (Monat/Woche):', bookingData);
+    }
+    
+    const booking = await createBooking(bookingData);
+    
+    // Debug: Logge die erhaltene Buchung
+    if (typeof logger !== 'undefined') {
+      logger.debug('Buchung erstellt - Response erhalten (Monat/Woche)', booking);
+    } else {
+      console.log('Buchung erstellt - Response erhalten (Monat/Woche):', booking);
+    }
+    
     showMessage('Buchung erfolgreich erstellt', 'success');
     
     // Ansicht neu laden
