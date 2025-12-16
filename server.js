@@ -2583,7 +2583,8 @@ apiV1.post('/bookings', async (req, res) => {
     // Max. 1 Trocknungsraum-Slot pro Person pro Tag
     // Maschinenübergreifend (nicht pro Maschine, sondern gesamt)
     // Hinweis: isWasher wurde bereits in REGEL 6 deklariert
-    const isDryer = machine.type === 'dryer';
+    // NEU: Eigenen Typ für Tumbler einführen, aber dieselben Regeln wie für Trocknungsräume
+    const isDryer = machine.type === 'dryer' || machine.type === 'tumbler';
     
     // Konfigurierbare Limits (Standard-Werte)
     const MAX_WASHER_SLOTS_PER_DAY = parseInt(process.env.MAX_WASHER_SLOTS_PER_DAY) || 2;
@@ -2987,7 +2988,8 @@ apiV1.post('/bookings', async (req, res) => {
           let lastSlotIndex = -1;
           
           for (const booking of futureBookings) {
-            if (booking.machine_type === 'dryer') {
+            // NEU: Tumbler werden wie Trocknungsräume behandelt
+            if (booking.machine_type === 'dryer' || booking.machine_type === 'tumbler') {
               const bookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === booking.slot);
               if (bookingSlotIndex === -1) continue;
               
