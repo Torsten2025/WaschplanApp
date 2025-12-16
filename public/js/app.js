@@ -2234,7 +2234,9 @@ function renderWeekSingleGrid(containerId, machineList, dates) {
           b.date === date && 
           b.slot === slot.label
         );
-        const isOwnBooking = booking && booking.user_name === currentUserName;
+        // Verwende currentUser.username wenn eingeloggt, sonst currentUserName
+        const userName = currentUser?.username || currentUserName;
+        const isOwnBooking = booking && booking.user_name === userName;
         let cellClass = 'schedule-cell';
         
         if (isSunday && machine.type === 'washer') {
@@ -2261,21 +2263,31 @@ function renderWeekSingleGrid(containerId, machineList, dates) {
   
   container.innerHTML = tableHTML;
   
-  // Event-Listener für Zellen-Clicks
-  container.addEventListener('click', (e) => {
+  // Event-Listener für Zellen-Clicks (alte Listener entfernen, bevor neue hinzugefügt werden)
+  const oldHandler = container._clickHandler;
+  if (oldHandler) {
+    container.removeEventListener('click', oldHandler);
+  }
+  
+  const clickHandler = (e) => {
     const cell = e.target.closest('.schedule-cell');
     if (cell && !cell.classList.contains('sunday') && !cell.classList.contains('booked')) {
       const machineId = parseInt(cell.dataset.machineId);
       const date = cell.dataset.date;
       const slot = cell.dataset.slot;
       
-      if (currentUserName) {
+      // Verwende currentUser.username wenn eingeloggt, sonst currentUserName
+      const userName = currentUser?.username || currentUserName;
+      if (userName) {
         handleSlotClickForMonthWeek(machineId, slot, date);
       } else {
         showMessage('Bitte melden Sie sich zuerst an.', 'error');
       }
     }
-  });
+  };
+  
+  container._clickHandler = clickHandler;
+  container.addEventListener('click', clickHandler);
 }
 
 async function loadMonthView() {
@@ -2331,9 +2343,13 @@ function updateMonthDisplay() {
 }
 
 /**
- * Event-Listener für Monatsnavigation einrichten
+ * Event-Listener für Monatsnavigation einrichten (nur einmal)
  */
+let monthNavigationSetup = false;
 function setupMonthNavigation() {
+  // Verhindere mehrfache Registrierung
+  if (monthNavigationSetup) return;
+  
   const monthPrev = document.getElementById('month-prev');
   const monthNext = document.getElementById('month-next');
   
@@ -2358,6 +2374,8 @@ function setupMonthNavigation() {
       loadMonthView();
     };
   }
+  
+  monthNavigationSetup = true;
 }
 
 /**
@@ -2456,7 +2474,9 @@ function renderMonthSingleGrid(containerId, machineList, daysInMonth) {
           b.date === date && 
           b.slot === slot.label
         );
-        const isOwnBooking = booking && booking.user_name === currentUserName;
+        // Verwende currentUser.username wenn eingeloggt, sonst currentUserName
+        const userName = currentUser?.username || currentUserName;
+        const isOwnBooking = booking && booking.user_name === userName;
         let cellClass = 'schedule-cell';
         
         if (isSunday && machine.type === 'washer') {
