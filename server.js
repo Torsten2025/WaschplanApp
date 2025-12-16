@@ -3581,10 +3581,25 @@ apiV1.post('/bookings', async (req, res) => {
             }
           }
         } else {
-          // Für Nicht-Trocknungsräume: erste zukünftige Buchung zählt
-          hasFutureBooking = true;
-          const nextBooking = futureBookings[0];
-          futureBookingMessage = `${nextBooking.machine_name} am ${nextBooking.date} (${nextBooking.slot})`;
+          // Für Nicht-Trocknungsräume (Waschmaschinen): 
+          // Prüfe ob bereits ein ANDERER zukünftiger TAG gebucht ist
+          // Mehrere Buchungen am GLEICHEN Tag sind erlaubt (bis zu 3 Waschmaschinen)
+          const uniqueFutureDates = [...new Set(futureBookings.map(b => b.date))];
+          const requestedDateInFutureBookings = uniqueFutureDates.includes(validatedDate);
+          
+          // Wenn das angeforderte Datum bereits in den zukünftigen Buchungen ist, ist es erlaubt
+          // (mehrere Buchungen am selben Tag sind OK)
+          if (!requestedDateInFutureBookings && uniqueFutureDates.length > 0) {
+            // Es gibt bereits eine Buchung an einem ANDEREN zukünftigen Tag
+            hasFutureBooking = true;
+            const firstFutureDate = uniqueFutureDates[0];
+            const bookingsOnFirstDate = futureBookings.filter(b => b.date === firstFutureDate);
+            const nextBooking = bookingsOnFirstDate[0];
+            futureBookingMessage = `${nextBooking.machine_name} am ${nextBooking.date} (${nextBooking.slot})`;
+          } else {
+            // Entweder keine zukünftigen Buchungen ODER Buchung am gleichen Tag -> erlaubt
+            hasFutureBooking = false;
+          }
         }
       }
       
