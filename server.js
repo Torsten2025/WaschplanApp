@@ -712,7 +712,7 @@ function initDatabase() {
     db.run(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
+      password_hash TEXT,  -- NULL erlaubt für einfaches Login (nur Name)
       role TEXT NOT NULL DEFAULT 'user',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       last_login DATETIME
@@ -1554,94 +1554,51 @@ app.get('/reset-admin', async (req, res) => {
     const ADMIN_USERNAME = 'admin';
     const ADMIN_PASSWORD = 'admin123';
     
-    // Verwende dieselbe Datenbank wie der Server
-    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'waschmaschine.db');
-    
-    // Datenbankverbindung erstellen
-    const db = new sqlite3.Database(dbPath, (err) => {
-      if (err) {
-        logger.error('Fehler beim Öffnen der Datenbank für Admin-Reset', err);
-        return res.status(500).json({
-          success: false,
-          error: 'Fehler beim Öffnen der Datenbank: ' + err.message
-        });
-      }
-    });
-    
-    // Prüfe ob Admin existiert
-    db.get('SELECT id, username FROM users WHERE username = ?', [ADMIN_USERNAME], async (err, row) => {
-      if (err) {
-        logger.error('Fehler beim Prüfen des Admin-Benutzers', err);
-        db.close();
-        return res.status(500).json({
-          success: false,
-          error: 'Fehler beim Prüfen des Admin-Benutzers: ' + err.message
-        });
-      }
+    // Verwende dbHelper (verwendet die gleiche Datenbank wie der Server)
+    try {
+      // Prüfe ob Admin existiert
+      const existingAdmin = await dbHelper.get('SELECT id, username FROM users WHERE username = ?', [ADMIN_USERNAME]);
       
-      try {
-        const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+      const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+      
+      if (existingAdmin) {
+        // Admin existiert - Passwort zurücksetzen
+        await dbHelper.run(
+          'UPDATE users SET password_hash = ?, role = ? WHERE username = ?',
+          [hash, 'admin', ADMIN_USERNAME]
+        );
         
-        if (row) {
-          // Admin existiert - Passwort zurücksetzen
-          db.run(
-            'UPDATE users SET password_hash = ?, role = ? WHERE username = ?',
-            [hash, 'admin', ADMIN_USERNAME],
-            (err) => {
-              db.close();
-              if (err) {
-                logger.error('Fehler beim Zurücksetzen des Admin-Passworts', err);
-                return res.status(500).json({
-                  success: false,
-                  error: 'Fehler beim Zurücksetzen des Passworts: ' + err.message
-                });
-              }
-              
-              logger.info('Admin-Passwort erfolgreich zurückgesetzt');
-              res.json({
-                success: true,
-                message: 'Admin-Benutzer erfolgreich zurückgesetzt!',
-                username: ADMIN_USERNAME,
-                password: ADMIN_PASSWORD,
-                warning: '⚠️ WICHTIG: Bitte entfernen Sie diesen Endpoint nach Gebrauch aus dem Code!'
-              });
-            }
-          );
-        } else {
-          // Admin existiert nicht - erstellen
-          db.run(
-            'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
-            [ADMIN_USERNAME, hash, 'admin'],
-            (err) => {
-              db.close();
-              if (err) {
-                logger.error('Fehler beim Erstellen des Admin-Benutzers', err);
-                return res.status(500).json({
-                  success: false,
-                  error: 'Fehler beim Erstellen des Admin-Benutzers: ' + err.message
-                });
-              }
-              
-              logger.info('Admin-Benutzer erfolgreich erstellt');
-              res.json({
-                success: true,
-                message: 'Admin-Benutzer erfolgreich erstellt!',
-                username: ADMIN_USERNAME,
-                password: ADMIN_PASSWORD,
-                warning: '⚠️ WICHTIG: Bitte entfernen Sie diesen Endpoint nach Gebrauch aus dem Code!'
-              });
-            }
-          );
-        }
-      } catch (hashError) {
-        db.close();
-        logger.error('Fehler beim Hashen des Passworts', hashError);
-        return res.status(500).json({
-          success: false,
-          error: 'Fehler beim Hashen des Passworts: ' + hashError.message
+        logger.info('Admin-Passwort erfolgreich zurückgesetzt');
+        res.json({
+          success: true,
+          message: 'Admin-Benutzer erfolgreich zurückgesetzt!',
+          username: ADMIN_USERNAME,
+          password: ADMIN_PASSWORD,
+          warning: '⚠️ WICHTIG: Bitte entfernen Sie diesen Endpoint nach Gebrauch aus dem Code!'
+        });
+      } else {
+        // Admin existiert nicht - erstellen
+        await dbHelper.run(
+          'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+          [ADMIN_USERNAME, hash, 'admin']
+        );
+        
+        logger.info('Admin-Benutzer erfolgreich erstellt');
+        res.json({
+          success: true,
+          message: 'Admin-Benutzer erfolgreich erstellt!',
+          username: ADMIN_USERNAME,
+          password: ADMIN_PASSWORD,
+          warning: '⚠️ WICHTIG: Bitte entfernen Sie diesen Endpoint nach Gebrauch aus dem Code!'
         });
       }
-    });
+    } catch (dbError) {
+      logger.error('Fehler beim Zurücksetzen des Admin-Passworts', dbError);
+      return res.status(500).json({
+        success: false,
+        error: 'Fehler beim Zurücksetzen des Admin-Passworts: ' + dbError.message
+      });
+    }
   } catch (error) {
     logger.error('Unerwarteter Fehler im Admin-Reset-Endpoint', error);
     res.status(500).json({
@@ -1658,21 +1615,20 @@ app.get('/reset-admin', async (req, res) => {
 // Einfaches Login (nur Name, kein Passwort) - für normale Benutzer
 apiV1.post('/auth/login-simple', async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, username } = req.body; // Unterstütze beide Varianten
+    const trimmedName = (name || username || '').trim();
     
     logger.debug('Einfaches Login-Versuch', { 
-      name: name ? 'vorhanden' : 'fehlt',
+      name: trimmedName ? 'vorhanden' : 'fehlt',
       hasSession: !!req.session,
       sessionId: req.sessionID
     });
     
-    if (!name || !name.trim()) {
+    if (!trimmedName) {
       logger.warn('Einfaches Login ohne Name');
       apiResponse.validationError(res, 'Name ist erforderlich');
       return;
     }
-    
-    const trimmedName = name.trim();
     
     // Validierung: Name-Länge
     if (trimmedName.length < 2) {
