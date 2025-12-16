@@ -460,7 +460,25 @@ async function deleteBooking(id, date = null) {
       throw new Error('Keine Internetverbindung. Buchung kann nicht gelöscht werden.');
     }
     
-    const response = await fetchWithRetry(`${API_BASE_URL}/bookings/${id}`, {
+    // Hole aktuellen Benutzernamen aus dem Input-Feld oder localStorage
+    let userName = '';
+    try {
+      const nameInput = document.getElementById('name-input');
+      if (nameInput && nameInput.value) {
+        userName = nameInput.value.trim();
+      } else if (typeof storage !== 'undefined') {
+        userName = storage.getItem('waschmaschine_user_name') || '';
+      }
+    } catch (e) {
+      // Ignoriere Fehler beim Zugriff auf DOM/storage
+    }
+    
+    // user_name als Query-Parameter übergeben
+    const url = userName 
+      ? `${API_BASE_URL}/bookings/${id}?user_name=${encodeURIComponent(userName)}`
+      : `${API_BASE_URL}/bookings/${id}`;
+    
+    const response = await fetchWithRetry(url, {
       method: 'DELETE'
     });
     
