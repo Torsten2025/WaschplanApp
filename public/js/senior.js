@@ -36,12 +36,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function initializeSeniorView() {
-  // Auto-Login (optional - kann später implementiert werden)
-  // await autoLoginSenior();
-  
   // Username aus LocalStorage laden
   if (typeof storage !== 'undefined') {
     currentUserName = storage.getItem('waschmaschine_user_name') || '';
+  }
+  
+  // Erleichterte Anmeldung: Automatisches Login wenn Name vorhanden
+  if (currentUserName) {
+    try {
+      const user = await loginSimple(currentUserName);
+      if (typeof logger !== 'undefined') {
+        logger.info('Erleichterte Anmeldung erfolgreich (Senioren)', { username: user.username });
+      }
+    } catch (error) {
+      // Fehler beim Auto-Login ist OK - wird beim ersten Klick nachgeholt
+      if (typeof logger !== 'undefined') {
+        logger.debug('Auto-Login fehlgeschlagen (wird beim ersten Klick nachgeholt)', error);
+      }
+    }
   }
   
   // Daten laden
@@ -282,8 +294,23 @@ function handleCellClick(e) {
   showCellInput(cell, machineId, date, slot);
 }
 
-function showCellInput(cell, machineId, date, slot) {
+async function showCellInput(cell, machineId, date, slot) {
   currentCell = { cell, machineId, date, slot };
+  
+  // Erleichterte Anmeldung: Wenn Name vorhanden aber nicht eingeloggt, automatisch einloggen
+  if (currentUserName && typeof loginSimple === 'function') {
+    try {
+      const user = await loginSimple(currentUserName);
+      if (typeof logger !== 'undefined') {
+        logger.debug('Erleichterte Anmeldung beim Zellklick (Senioren)', { username: user.username });
+      }
+    } catch (error) {
+      // Fehler beim Login - Input trotzdem anzeigen, Login wird beim Speichern versucht
+      if (typeof logger !== 'undefined') {
+        logger.debug('Login beim Zellklick fehlgeschlagen (wird beim Speichern versucht)', error);
+      }
+    }
+  }
   
   // Position berechnen
   const rect = cell.getBoundingClientRect();
@@ -294,8 +321,8 @@ function showCellInput(cell, machineId, date, slot) {
   inputOverlay.style.width = `${rect.width}px`;
   inputOverlay.style.height = `${rect.height}px`;
   
-  // Input fokussieren
-  cellInput.value = '';
+  // Input fokussieren (mit vorausgefülltem Namen für erleichterte Eingabe)
+  cellInput.value = currentUserName || '';
   cellInput.focus();
 }
 
@@ -317,12 +344,27 @@ async function saveCellInput() {
   const { machineId, date, slot } = currentCell;
   
   try {
-    // Buchung erstellen
+    // Erleichterte Anmeldung: Automatisches Login vor Buchung
+    if (typeof loginSimple === 'function') {
+      try {
+        await loginSimple(name);
+        if (typeof logger !== 'undefined') {
+          logger.debug('Erleichterte Anmeldung vor Buchung (Senioren)', { username: name });
+        }
+      } catch (error) {
+        // Fehler beim Login - trotzdem versuchen zu buchen (Backend prüft Session)
+        if (typeof logger !== 'undefined') {
+          logger.warn('Login vor Buchung fehlgeschlagen', error);
+        }
+      }
+    }
+    
+    // Buchung erstellen (user_name wird NICHT mehr gesendet - kommt aus Session)
     const booking = await createBooking({
       machine_id: machineId,
       date: date,
-      slot: slot,
-      user_name: name
+      slot: slot
+      // user_name wird automatisch aus der Session genommen (Backend)
     });
     
     // Visuelles Feedback: Zelle blinkt kurz grün

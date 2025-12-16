@@ -654,7 +654,6 @@ async function handleSlotClick(machineId, slotLabel) {
   const nameInput = document.getElementById('name-input');
   
   let date = dateInput.value;
-  // Verwende Benutzername aus Input-Feld (wird automatisch im localStorage gespeichert)
   const userName = nameInput ? nameInput.value.trim() : '';
   
   // Validierung: Name muss vorhanden sein
@@ -664,6 +663,21 @@ async function handleSlotClick(machineId, slotLabel) {
       nameInput.focus();
     }
     return;
+  }
+  
+  // Prüfe ob eingeloggt - wenn nicht, mache einfaches Login
+  if (!currentUser || currentUser.username !== userName) {
+    try {
+      showMessage('Melde Sie an...', 'info');
+      const user = await loginSimple(userName);
+      currentUser = user;
+      currentUserName = user.username;
+      updateAuthUI();
+      showMessage(`Willkommen, ${user.username}!`, 'success');
+    } catch (error) {
+      showMessage('Fehler beim Anmelden: ' + (error.message || 'Unbekannter Fehler'), 'error');
+      return;
+    }
   }
   
   // Validierung
@@ -745,11 +759,12 @@ async function handleSlotClick(machineId, slotLabel) {
     showMessage('Buchung wird erstellt...', 'info');
     
     // Debug: Logge die zu sendenden Daten
+    // user_name wird NICHT mehr gesendet - kommt aus Session im Backend
     const bookingData = {
       machine_id: machineId,
       date: date,
-      slot: slotLabel,
-      user_name: userName
+      slot: slotLabel
+      // user_name wird automatisch aus der Session genommen (Backend)
     };
     
     if (typeof logger !== 'undefined') {
