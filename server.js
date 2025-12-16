@@ -1848,8 +1848,7 @@ apiV1.post('/auth/login', async (req, res) => {
       errorStack: error.stack,
       username: req.body?.username,
       hasSession: !!req.session,
-      sessionId: req.sessionID,
-      dbAvailable: !!db
+      sessionId: req.sessionID
     });
     
     // Detailliertere Fehlermeldung für Debugging
@@ -1931,8 +1930,24 @@ apiV1.post('/auth/register', async (req, res) => {
       }
     }, 201);
   } catch (error) {
-    logger.error('Fehler bei der Registrierung', error);
-    apiResponse.error(res, 'Fehler bei der Registrierung', 500);
+    logger.error('Fehler bei der Registrierung', error, {
+      errorMessage: error.message,
+      errorStack: error.stack,
+      username: req.body?.username,
+      hasSession: !!req.session
+    });
+    
+    // Detailliertere Fehlermeldung für Debugging
+    let errorMessage = 'Fehler bei der Registrierung';
+    if (error.message.includes('SQLITE') || error.message.includes('database')) {
+      errorMessage = 'Datenbankfehler bei der Registrierung. Bitte versuchen Sie es später erneut.';
+    } else if (error.message.includes('bcrypt')) {
+      errorMessage = 'Fehler beim Hashen des Passworts.';
+    } else if (error.message.includes('UNIQUE constraint')) {
+      errorMessage = 'Benutzername ist bereits vergeben.';
+    }
+    
+    apiResponse.error(res, errorMessage, 500);
   }
 });
 
