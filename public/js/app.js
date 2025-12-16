@@ -2347,27 +2347,13 @@ function setupMonthNavigation() {
  */
 async function loadMonthBookings() {
   try {
-    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-    const allBookings = [];
+    // Verwende fetchBookingsMonth statt einzelner fetchBookings Aufrufe
+    // Der /bookings/month Endpunkt hat keine "nicht in der Vergangenheit" Validierung
+    const data = await fetchBookingsMonth(currentYear, currentMonth);
+    bookings = data.bookings || [];
     
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      try {
-        const dayBookings = await fetchBookings(date);
-        if (dayBookings && Array.isArray(dayBookings)) {
-          allBookings.push(...dayBookings);
-        }
-      } catch (error) {
-        // Ignoriere Fehler für einzelne Tage
-        if (typeof logger !== 'undefined') {
-          logger.warn(`Fehler beim Laden der Buchungen für ${date}:`, error);
-        }
-      }
-    }
-    
-    bookings = allBookings;
     if (typeof logger !== 'undefined') {
-      logger.debug('Monats-Buchungen geladen', { count: bookings.length });
+      logger.debug('Monats-Buchungen geladen', { count: bookings.length, year: currentYear, month: currentMonth });
     }
   } catch (error) {
     if (typeof logger !== 'undefined') {
