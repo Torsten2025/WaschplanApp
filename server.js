@@ -1508,7 +1508,7 @@ app.get('/reset-admin', async (req, res) => {
     const ADMIN_PASSWORD = 'admin123';
     
     // Verwende dieselbe Datenbank wie der Server
-    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'database.db');
+    const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'waschmaschine.db');
     
     // Datenbankverbindung erstellen
     const db = new sqlite3.Database(dbPath, (err) => {
@@ -3372,17 +3372,21 @@ apiV1.delete('/bookings/:id', async (req, res) => {
     }
     
     // Sicherheit: Prüfen ob Benutzer berechtigt ist (eigene Buchung oder Admin)
-    const currentUsername = req.session?.username;
+    // Unterstützt sowohl Session-basierte Auth als auch user_name als Query-Parameter (für App ohne Login)
+    const currentUsername = req.session?.username || req.query.user_name || req.body?.user_name;
     const isAdmin = req.session?.role === 'admin';
     const isOwner = booking.user_name === currentUsername;
     
-    // Wenn nicht authentifiziert, kann nicht löschen
+    // Wenn kein Benutzername vorhanden (weder Session noch Parameter), kann nicht löschen
     if (!currentUsername) {
-      logger.warn('Buchung löschen: Nicht authentifiziert', {
+      logger.warn('Buchung löschen: Kein Benutzername angegeben', {
         booking_id: validatedId,
-        booking_owner: booking.user_name
+        booking_owner: booking.user_name,
+        has_session: !!req.session,
+        has_query_param: !!req.query.user_name,
+        has_body: !!req.body?.user_name
       });
-      apiResponse.unauthorized(res, 'Sie müssen eingeloggt sein, um Buchungen zu löschen');
+      apiResponse.unauthorized(res, 'Bitte geben Sie Ihren Namen an, um Buchungen zu löschen');
       return;
     }
     
