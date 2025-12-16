@@ -2191,14 +2191,14 @@ function renderWeekSingleGrid(containerId, machineList, dates) {
   tableHTML += '<tr class="table-header-row machine-names">';
   tableHTML += '<th class="day-header" rowspan="2">Tag</th>';
   machineList.forEach(machine => {
-    tableHTML += `<th class="machine-header" colspan="${TIME_SLOTS_MONTH.length}">${escapeHtml(machine.name)}</th>`;
+    tableHTML += `<th class="machine-header" colspan="${TIME_SLOTS_TABLE.length}">${escapeHtml(machine.name)}</th>`;
   });
   tableHTML += '</tr>';
   
   // Zweite Header-Zeile: Zeit-Slots
   tableHTML += '<tr class="table-header-row time-slots">';
   machineList.forEach(() => {
-    TIME_SLOTS_MONTH.forEach(slot => {
+    TIME_SLOTS_TABLE.forEach(slot => {
       tableHTML += `<th class="slot-header">${escapeHtml(slot.label)}</th>`;
     });
   });
@@ -2221,7 +2221,7 @@ function renderWeekSingleGrid(containerId, machineList, dates) {
     
     // Buchungs-Zellen
     machineList.forEach(machine => {
-      TIME_SLOTS_MONTH.forEach(slot => {
+      TIME_SLOTS_TABLE.forEach(slot => {
         const booking = bookings.find(b => 
           b.machine_id === machine.id && 
           b.date === date && 
@@ -2272,9 +2272,9 @@ function renderWeekSingleGrid(containerId, machineList, dates) {
 }
 
 /**
- * Lädt die Monatsübersicht (zettel-ähnliches Design wie Senioren-Ansicht)
+ * Zeit-Slots für Tabellen-Ansichten (Woche und Monat)
  */
-const TIME_SLOTS_MONTH = [
+const TIME_SLOTS_TABLE = [
   { label: '07:00-12:00', start: '07:00', end: '12:00' },
   { label: '12:00-17:00', start: '12:00', end: '17:00' },
   { label: '17:00-21:00', start: '17:00', end: '21:00' }
@@ -2421,14 +2421,14 @@ function renderMonthSingleGrid(containerId, machineList, daysInMonth) {
   tableHTML += '<tr class="table-header-row machine-names">';
   tableHTML += '<th class="day-header" rowspan="2">Tag</th>';
   machineList.forEach(machine => {
-    tableHTML += `<th class="machine-header" colspan="${TIME_SLOTS_MONTH.length}">${escapeHtml(machine.name)}</th>`;
+    tableHTML += `<th class="machine-header" colspan="${TIME_SLOTS_TABLE.length}">${escapeHtml(machine.name)}</th>`;
   });
   tableHTML += '</tr>';
   
   // Zweite Header-Zeile: Zeit-Slots
   tableHTML += '<tr class="table-header-row time-slots">';
   machineList.forEach(() => {
-    TIME_SLOTS_MONTH.forEach(slot => {
+    TIME_SLOTS_TABLE.forEach(slot => {
       tableHTML += `<th class="slot-header">${escapeHtml(slot.label)}</th>`;
     });
   });
@@ -2452,7 +2452,7 @@ function renderMonthSingleGrid(containerId, machineList, daysInMonth) {
     
     // Buchungs-Zellen
     machineList.forEach(machine => {
-      TIME_SLOTS_MONTH.forEach(slot => {
+      TIME_SLOTS_TABLE.forEach(slot => {
         const booking = bookings.find(b => 
           b.machine_id === machine.id && 
           b.date === date && 
