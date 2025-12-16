@@ -2263,13 +2263,13 @@ function updateAuthUI() {
     userInfo.classList.remove('hidden');
     usernameDisplay.textContent = currentUser.username;
     
-    // Name-Input bleibt sichtbar (normale Buchungen funktionieren auch ohne Login)
+    // Name-Input bleibt sichtbar und wird mit eingeloggtem Namen gefüllt
     const nameInputGroup = nameInput.closest('.input-group');
     if (nameInputGroup) {
-      nameInputGroup.style.display = 'none';
+      nameInputGroup.style.display = 'block';
     }
     nameInput.value = currentUser.username;
-    nameInput.disabled = true;
+    nameInput.disabled = false; // Nicht disabled - kann geändert werden
   } else {
     // Nicht eingeloggt (normal - normale Buchungen funktionieren ohne Login)
     loginBtn.style.display = 'block';
@@ -2360,7 +2360,23 @@ function showLoginModal() {
   if (modal) {
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
-    document.getElementById('login-username').focus();
+    
+    // Name aus localStorage vorausfüllen
+    const usernameInput = document.getElementById('login-username');
+    if (usernameInput) {
+      const savedName = typeof storage !== 'undefined' ? storage.getItem('waschmaschine_user_name') : '';
+      if (savedName) {
+        usernameInput.value = savedName;
+      }
+      usernameInput.focus();
+    }
+    
+    // Passwort-Feld optional machen (für einfaches Login)
+    const passwordInput = document.getElementById('login-password');
+    if (passwordInput) {
+      passwordInput.placeholder = 'Optional (nur für Admin)';
+      passwordInput.removeAttribute('required');
+    }
   }
 }
 
@@ -2404,9 +2420,58 @@ function closeRegisterModal() {
  * Behandelt Login
  */
 async function handleLogin() {
-  const username = document.getElementById('login-username').value.trim();
-  const password = document.getElementById('login-password').value;
+  const usernameInput = document.getElementById('login-username');
+  const passwordInput = document.getElementById('login-password');
   
+  if (!usernameInput) {
+    showMessage('Login-Formular nicht gefunden.', 'error');
+    return;
+  }
+  
+  const username = usernameInput.value.trim();
+  const password = passwordInput ? passwordInput.value : '';
+  
+  // Einfaches Login (nur Name, kein Passwort) - für normale Benutzer
+  if (!password || password.length === 0) {
+    // Einfaches Login verwenden
+    if (!username) {
+      showMessage('Bitte geben Sie Ihren Namen ein.', 'error');
+      return;
+    }
+    
+    try {
+      showMessage('Anmeldung läuft...', 'info');
+      const result = await loginSimple(username);
+      
+      // Backend gibt direkt User-Objekt zurück: { id, username, role }
+      if (result && result.username) {
+        currentUser = result;
+        currentUserName = result.username;
+        
+        // Name in localStorage speichern
+        if (typeof storage !== 'undefined') {
+          storage.setItem('waschmaschine_user_name', result.username);
+        }
+        
+        updateAuthUI();
+        closeLoginModal();
+        
+        showMessage(`Willkommen, ${result.username}!`, 'success');
+      } else {
+        showMessage('Anmeldung fehlgeschlagen.', 'error');
+      }
+    } catch (error) {
+      showMessage('Fehler bei der Anmeldung: ' + error.message, 'error');
+      if (typeof logger !== 'undefined') {
+        logger.error('Login-Fehler (einfaches Login)', error);
+      } else {
+        console.error('Login-Fehler (einfaches Login):', error);
+      }
+    }
+    return;
+  }
+  
+  // Normales Login mit Passwort (für Admin)
   if (!username || !password) {
     showMessage('Bitte geben Sie Benutzername und Passwort ein.', 'error');
     return;
