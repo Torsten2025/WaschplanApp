@@ -209,17 +209,45 @@ const sessionConfig = {
 
 // Versuche FileStore zu verwenden, fallback auf Memory-Store (für Render)
 try {
-  // Prüfe ob Sessions-Verzeichnis existiert und beschreibbar ist
+  // Prüfe ob Sessions-Verzeichnis existiert, sonst erstellen
+  if (!existsSync(SESSIONS_DIR)) {
+    try {
+      const fsSync = require('fs');
+      fsSync.mkdirSync(SESSIONS_DIR, { recursive: true });
+      logger.info('Sessions-Verzeichnis erstellt', { path: SESSIONS_DIR });
+    } catch (mkdirError) {
+      logger.warn('Sessions-Verzeichnis konnte nicht erstellt werden, verwende Memory-Store', { 
+        path: SESSIONS_DIR,
+        error: mkdirError.message 
+      });
+    }
+  }
+  
+  // Prüfe ob Sessions-Verzeichnis beschreibbar ist
   if (existsSync(SESSIONS_DIR)) {
-    sessionConfig.store = new FileStore({
-      path: SESSIONS_DIR,
-      ttl: 86400, // 24 Stunden in Sekunden
-      retries: 1,
-      logFn: (message) => {
-        logger.debug(`Session-File-Store: ${message}`);
-      }
-    });
-    logger.info('Session-File-Store aktiviert', { path: SESSIONS_DIR });
+    try {
+      // Test-Schreibzugriff
+      const testFile = path.join(SESSIONS_DIR, '.test-write');
+      const fsSync = require('fs');
+      fsSync.writeFileSync(testFile, 'test');
+      fsSync.unlinkSync(testFile);
+      
+      // FileStore verwenden
+      sessionConfig.store = new FileStore({
+        path: SESSIONS_DIR,
+        ttl: 86400, // 24 Stunden in Sekunden
+        retries: 1,
+        logFn: (message) => {
+          logger.debug(`Session-File-Store: ${message}`);
+        }
+      });
+      logger.info('Session-File-Store aktiviert', { path: SESSIONS_DIR });
+    } catch (writeError) {
+      logger.warn('Sessions-Verzeichnis ist nicht beschreibbar, verwende Memory-Store', { 
+        path: SESSIONS_DIR,
+        error: writeError.message 
+      });
+    }
   } else {
     logger.warn('Sessions-Verzeichnis existiert nicht, verwende Memory-Store', { path: SESSIONS_DIR });
   }
