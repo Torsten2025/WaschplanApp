@@ -164,11 +164,12 @@ const sessionConfig = {
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS in Produktion
+    secure: process.env.NODE_ENV === 'production' || process.env.RENDER === 'true', // HTTPS in Produktion oder auf Render
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 Stunden
     sameSite: 'lax' // Wichtig für CORS und Cross-Site-Requests
-  }
+  },
+  name: 'sessionId' // Expliziter Cookie-Name für bessere Kompatibilität
 };
 
 // Versuche FileStore zu verwenden, fallback auf Memory-Store (für Render)
@@ -1736,6 +1737,14 @@ apiV1.post('/auth/login', async (req, res) => {
     
     logger.debug('Benutzer gefunden', { userId: user.id, username: user.username, role: user.role });
     
+    // Prüfe ob User ein Passwort hat (password_hash nicht NULL)
+    if (!user.password_hash) {
+      logger.warn('Login-Versuch für User ohne Passwort (nur einfaches Login erlaubt)', { username });
+      metrics.api.auth.failures++;
+      apiResponse.error(res, 'Dieser Benutzer hat kein Passwort. Bitte verwenden Sie das einfache Login.', 401);
+      return;
+    }
+    
     const passwordMatch = await bcrypt.compare(password, user.password_hash);
     
     if (!passwordMatch) {
@@ -1792,10 +1801,20 @@ apiV1.post('/auth/login', async (req, res) => {
     // Last-Login aktualisieren
     await dbHelper.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
     
-    logger.info('Benutzer erfolgreich eingeloggt', { username: user.username, role: user.role, sessionId: req.sessionID });
+    logger.info('Benutzer erfolgreich eingeloggt', { 
+      username: user.username, 
+      role: user.role, 
+      sessionId: req.sessionID,
+      cookieSecure: sessionConfig.cookie.secure,
+      nodeEnv: process.env.NODE_ENV,
+      isRender: process.env.RENDER === 'true'
+    });
     
     // Metriken aktualisieren
     metrics.api.auth.logins++;
+    
+    // Response mit explizitem Cookie-Header für Debugging
+    res.cookie('sessionId', req.sessionID, sessionConfig.cookie);
     
     apiResponse.success(res, {
       id: user.id,
