@@ -64,7 +64,8 @@ body {
     box-shadow: 0 4px 12px rgba(32, 201, 151, 0.4);
 }
 
-.senior-header {
+.senior-header,
+.month-header {
     text-align: center;
     margin-bottom: 40px;
     padding-bottom: 25px;

@@ -2066,7 +2066,7 @@ function switchView(view) {
     loadWeekView();
   } else if (view === 'month') {
     if (monthSection) monthSection.style.display = 'block';
-    if (navSection) navSection.style.display = 'block';
+    // Navigation wird in der Monatsansicht selbst angezeigt (month-header)
     loadMonthView();
   }
 }
@@ -2101,9 +2101,8 @@ async function loadWeekView() {
     const weekContainer = document.getElementById('week-container');
     if (!weekContainer) return;
     
-    weekContainer.innerHTML = '<div class="loading">Lade Arbeitswoche...</div>';
-    
     const data = await fetchBookingsWeek(currentWeekStart);
+    bookings = data.bookings || [];
     
     // Navigation anzeigen
     const navDisplay = document.getElementById('nav-display');
@@ -2114,54 +2113,8 @@ async function loadWeekView() {
       navDisplay.textContent = `${monday.toLocaleDateString('de-DE', options)} - ${friday.toLocaleDateString('de-DE', options)}`;
     }
     
-    // Buchungen nach Tag gruppieren
-    const bookingsByDay = {};
-    data.bookings.forEach(booking => {
-      if (!bookingsByDay[booking.date]) {
-        bookingsByDay[booking.date] = [];
-      }
-      bookingsByDay[booking.date].push(booking);
-    });
-    
-    // HTML generieren
-    let html = '<div class="week-grid">';
-    
-    // Wochentage (Montag bis Freitag)
-    const weekDays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
-    const mondayDate = new Date(data.week_start + 'T00:00:00');
-    
-    for (let i = 0; i < 5; i++) {
-      const dayDate = new Date(mondayDate);
-      dayDate.setDate(mondayDate.getDate() + i);
-      const dateStr = dayDate.toISOString().split('T')[0];
-      const dayName = weekDays[i];
-      const dayBookings = bookingsByDay[dateStr] || [];
-      
-      html += `
-        <div class="week-day">
-          <h3 class="week-day-header">
-            ${dayName}<br>
-            <span class="week-day-date">${dayDate.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span>
-          </h3>
-          <div class="week-day-bookings">
-            ${dayBookings.length === 0 ? '<p class="no-bookings">Keine Buchungen</p>' : ''}
-            ${dayBookings.map(booking => `
-              <div class="week-booking" data-booking-id="${booking.id}">
-                <div class="week-booking-slot">${booking.slot}</div>
-                <div class="week-booking-machine">${booking.machine_name}</div>
-                <div class="week-booking-user">${booking.user_name}</div>
-                ${booking.user_name === currentUserName ? `
-                  <button class="week-booking-delete" onclick="deleteBookingFromWeek(${booking.id}, '${booking.date}')" aria-label="Buchung löschen">×</button>
-                ` : ''}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
-    }
-    
-    html += '</div>';
-    weekContainer.innerHTML = html;
+    // Grid rendern (zettel-ähnliches Design)
+    renderWeekGrid(data.week_start, data.week_end);
     
   } catch (error) {
     showMessage('Fehler beim Laden der Arbeitswoche: ' + error.message, 'error');
@@ -2174,90 +2127,160 @@ async function loadWeekView() {
 }
 
 /**
- * Lädt die Monatsübersicht
+ * Rendert das zettel-ähnliche Grid für die Wochenansicht
  */
+function renderWeekGrid(weekStart, weekEnd) {
+  // Filtere Maschinen nach Typ
+  const washers = machines.filter(m => m.type === 'washer');
+  const dryers = machines.filter(m => m.type === 'dryer');
+  const tumblers = machines.filter(m => m.type === 'tumbler');
+  
+  // Wochentage (Montag bis Freitag)
+  const weekDays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag'];
+  const mondayDate = new Date(weekStart + 'T00:00:00');
+  const dates = [];
+  
+  for (let i = 0; i < 5; i++) {
+    const dayDate = new Date(mondayDate);
+    dayDate.setDate(mondayDate.getDate() + i);
+    dates.push({
+      date: dayDate.toISOString().split('T')[0],
+      dayName: weekDays[i],
+      dayNumber: dayDate.getDate(),
+      month: dayDate.getMonth() + 1
+    });
+  }
+  
+  // Rendere Grids
+  renderWeekSingleGrid('week-grid-washers', washers, dates);
+  renderWeekSingleGrid('week-grid-dryers', dryers, dates);
+  renderWeekSingleGrid('week-grid-tumblers', tumblers, dates);
+}
+
+/**
+ * Rendert ein einzelnes Grid für die Wochenansicht
+ */
+function renderWeekSingleGrid(containerId, machineList, dates) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  if (machineList.length === 0) {
+    container.innerHTML = '<div style="padding: 20px; text-align: center;">Keine Maschinen verfügbar</div>';
+    return;
+  }
+  
+  // Tabellen-HTML aufbauen
+  let tableHTML = '<thead>';
+  
+  // Erste Header-Zeile: Maschinen-Namen
+  tableHTML += '<tr class="table-header-row machine-names">';
+  tableHTML += '<th class="day-header" rowspan="2">Tag</th>';
+  machineList.forEach(machine => {
+    tableHTML += `<th class="machine-header" colspan="${TIME_SLOTS_MONTH.length}">${escapeHtml(machine.name)}</th>`;
+  });
+  tableHTML += '</tr>';
+  
+  // Zweite Header-Zeile: Zeit-Slots
+  tableHTML += '<tr class="table-header-row time-slots">';
+  machineList.forEach(() => {
+    TIME_SLOTS_MONTH.forEach(slot => {
+      tableHTML += `<th class="slot-header">${escapeHtml(slot.label)}</th>`;
+    });
+  });
+  tableHTML += '</tr>';
+  tableHTML += '</thead>';
+  
+  // Body: Wochentage
+  tableHTML += '<tbody>';
+  dates.forEach(dayData => {
+    const date = dayData.date;
+    const dateObj = new Date(dayData.date + 'T00:00:00');
+    const dayOfWeek = dateObj.getDay();
+    const isSunday = dayOfWeek === 0;
+    
+    const rowClass = isSunday ? 'sunday-row' : '';
+    tableHTML += `<tr class="${rowClass}">`;
+    
+    // Tag-Zelle
+    tableHTML += `<td class="day-cell ${isSunday ? 'sunday' : ''}">${dayData.dayNumber}.${dayData.month}<br><span class="day-name">${dayData.dayName.substring(0, 2)}</span></td>`;
+    
+    // Buchungs-Zellen
+    machineList.forEach(machine => {
+      TIME_SLOTS_MONTH.forEach(slot => {
+        const booking = bookings.find(b => 
+          b.machine_id === machine.id && 
+          b.date === date && 
+          b.slot === slot.label
+        );
+        const isOwnBooking = booking && booking.user_name === currentUserName;
+        let cellClass = 'schedule-cell';
+        
+        if (isSunday && machine.type === 'washer') {
+          cellClass += ' sunday';
+        } else if (booking) {
+          cellClass += isOwnBooking ? ' own-booking' : ' booked';
+        }
+        
+        const cellContent = booking ? escapeHtml(booking.user_name) : '';
+        
+        tableHTML += `<td class="${cellClass}" 
+          data-machine-id="${machine.id}" 
+          data-date="${date}" 
+          data-slot="${escapeHtml(slot.label)}"
+          data-is-booked="${!!booking}"
+          data-is-sunday="${isSunday}"
+          data-machine-type="${machine.type}">${cellContent}</td>`;
+      });
+    });
+    
+    tableHTML += '</tr>';
+  });
+  tableHTML += '</tbody>';
+  
+  container.innerHTML = tableHTML;
+  
+  // Event-Listener für Zellen-Clicks
+  container.addEventListener('click', (e) => {
+    const cell = e.target.closest('.schedule-cell');
+    if (cell && !cell.classList.contains('sunday') && !cell.classList.contains('booked')) {
+      const machineId = parseInt(cell.dataset.machineId);
+      const date = cell.dataset.date;
+      const slot = cell.dataset.slot;
+      
+      if (currentUserName) {
+        handleSlotClickForMonthWeek(machineId, slot, date);
+      } else {
+        showMessage('Bitte melden Sie sich zuerst an.', 'error');
+      }
+    }
+  });
+}
+
+/**
+ * Lädt die Monatsübersicht (zettel-ähnliches Design wie Senioren-Ansicht)
+ */
+const TIME_SLOTS_MONTH = [
+  { label: '07:00-12:00', start: '07:00', end: '12:00' },
+  { label: '12:00-17:00', start: '12:00', end: '17:00' },
+  { label: '17:00-21:00', start: '17:00', end: '21:00' }
+];
+
 async function loadMonthView() {
   try {
     const monthContainer = document.getElementById('month-container');
     if (!monthContainer) return;
     
-    monthContainer.innerHTML = '<div class="loading">Lade Monat...</div>';
+    // Monatsanzeige aktualisieren
+    updateMonthDisplay();
     
-    const data = await fetchBookingsMonth(currentYear, currentMonth);
+    // Event-Listener für Monatsnavigation einrichten
+    setupMonthNavigation();
     
-    // Navigation anzeigen
-    const navDisplay = document.getElementById('nav-display');
-    if (navDisplay) {
-      const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-                         'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-      navDisplay.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
-    }
+    // Buchungen für den gesamten Monat laden
+    await loadMonthBookings();
     
-    // Buchungen nach Tag gruppieren
-    const bookingsByDay = {};
-    data.bookings.forEach(booking => {
-      if (!bookingsByDay[booking.date]) {
-        bookingsByDay[booking.date] = [];
-      }
-      bookingsByDay[booking.date].push(booking);
-    });
-    
-    // Ersten Tag des Monats
-    const firstDay = new Date(currentYear, currentMonth - 1, 1);
-    const lastDay = new Date(currentYear, currentMonth, 0);
-    const daysInMonth = lastDay.getDate();
-    const startDayOfWeek = firstDay.getDay(); // 0 = Sonntag, 1 = Montag, etc.
-    
-    // HTML generieren
-    let html = '<div class="month-calendar">';
-    html += '<div class="month-weekdays">';
-    const weekDays = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
-    weekDays.forEach(day => {
-      html += `<div class="month-weekday">${day}</div>`;
-    });
-    html += '</div>';
-    
-    html += '<div class="month-days">';
-    
-    // Leere Zellen für Tage vor Monatsbeginn
-    const adjustedStartDay = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1; // Montag = 0
-    for (let i = 0; i < adjustedStartDay; i++) {
-      html += '<div class="month-day empty"></div>';
-    }
-    
-    // Tage des Monats
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentYear, currentMonth - 1, day);
-      const dateStr = date.toISOString().split('T')[0];
-      const dayBookings = bookingsByDay[dateStr] || [];
-      const isToday = dateStr === new Date().toISOString().split('T')[0];
-      const isPast = date < new Date().setHours(0, 0, 0, 0);
-      
-      html += `
-        <div class="month-day ${isToday ? 'today' : ''} ${isPast ? 'past' : ''}">
-          <div class="month-day-number">${day}</div>
-          <div class="month-day-bookings">
-            ${dayBookings.length > 0 ? `
-              <div class="month-booking-count" title="${dayBookings.length} Buchung(en)">
-                ${dayBookings.length}
-              </div>
-              <div class="month-booking-details">
-                ${dayBookings.map(booking => `
-                  <div class="month-booking-item">
-                    <span class="month-booking-slot">${booking.slot}</span>
-                    <span class="month-booking-machine">${booking.machine_name}</span>
-                    <span class="month-booking-user">${booking.user_name}</span>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-          </div>
-        </div>
-      `;
-    }
-    
-    html += '</div></div>';
-    monthContainer.innerHTML = html;
+    // Grid rendern
+    renderMonthGrid();
     
   } catch (error) {
     showMessage('Fehler beim Laden des Monats: ' + error.message, 'error');
@@ -2265,6 +2288,242 @@ async function loadMonthView() {
       logger.error('Fehler beim Laden des Monats', error);
     } else {
       console.error('Fehler beim Laden des Monats:', error);
+    }
+  }
+}
+
+/**
+ * Aktualisiert die Monatsanzeige
+ */
+function updateMonthDisplay() {
+  const monthDisplay = document.getElementById('month-display');
+  if (monthDisplay) {
+    const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                       'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    monthDisplay.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+  }
+  
+  // Auch nav-display aktualisieren (für Navigation-Sektion)
+  const navDisplay = document.getElementById('nav-display');
+  if (navDisplay) {
+    const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+                       'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+    navDisplay.textContent = `${monthNames[currentMonth - 1]} ${currentYear}`;
+  }
+}
+
+/**
+ * Event-Listener für Monatsnavigation einrichten
+ */
+function setupMonthNavigation() {
+  const monthPrev = document.getElementById('month-prev');
+  const monthNext = document.getElementById('month-next');
+  
+  if (monthPrev) {
+    monthPrev.onclick = () => {
+      currentMonth--;
+      if (currentMonth < 1) {
+        currentMonth = 12;
+        currentYear--;
+      }
+      loadMonthView();
+    };
+  }
+  
+  if (monthNext) {
+    monthNext.onclick = () => {
+      currentMonth++;
+      if (currentMonth > 12) {
+        currentMonth = 1;
+        currentYear++;
+      }
+      loadMonthView();
+    };
+  }
+}
+
+/**
+ * Lädt Buchungen für den gesamten Monat
+ */
+async function loadMonthBookings() {
+  try {
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const allBookings = [];
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      try {
+        const dayBookings = await fetchBookings(date);
+        if (dayBookings && Array.isArray(dayBookings)) {
+          allBookings.push(...dayBookings);
+        }
+      } catch (error) {
+        // Ignoriere Fehler für einzelne Tage
+        if (typeof logger !== 'undefined') {
+          logger.warn(`Fehler beim Laden der Buchungen für ${date}:`, error);
+        }
+      }
+    }
+    
+    bookings = allBookings;
+    if (typeof logger !== 'undefined') {
+      logger.debug('Monats-Buchungen geladen', { count: bookings.length });
+    }
+  } catch (error) {
+    if (typeof logger !== 'undefined') {
+      logger.error('Fehler beim Laden der Monats-Buchungen', error);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Rendert das zettel-ähnliche Grid für die Monatsansicht
+ */
+function renderMonthGrid() {
+  const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+  
+  // Filtere Maschinen nach Typ
+  const washers = machines.filter(m => m.type === 'washer');
+  const dryers = machines.filter(m => m.type === 'dryer');
+  const tumblers = machines.filter(m => m.type === 'tumbler');
+  
+  // Rendere Grids
+  renderMonthSingleGrid('month-grid-washers', washers, daysInMonth);
+  renderMonthSingleGrid('month-grid-dryers', dryers, daysInMonth);
+  renderMonthSingleGrid('month-grid-tumblers', tumblers, daysInMonth);
+}
+
+/**
+ * Rendert ein einzelnes Grid (Waschmaschinen, Trockenräume oder Tumbler)
+ */
+function renderMonthSingleGrid(containerId, machineList, daysInMonth) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  if (machineList.length === 0) {
+    container.innerHTML = '<div style="padding: 20px; text-align: center;">Keine Maschinen verfügbar</div>';
+    return;
+  }
+  
+  const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+  
+  // Tabellen-HTML aufbauen
+  let tableHTML = '<thead>';
+  
+  // Erste Header-Zeile: Maschinen-Namen
+  tableHTML += '<tr class="table-header-row machine-names">';
+  tableHTML += '<th class="day-header" rowspan="2">Tag</th>';
+  machineList.forEach(machine => {
+    tableHTML += `<th class="machine-header" colspan="${TIME_SLOTS_MONTH.length}">${escapeHtml(machine.name)}</th>`;
+  });
+  tableHTML += '</tr>';
+  
+  // Zweite Header-Zeile: Zeit-Slots
+  tableHTML += '<tr class="table-header-row time-slots">';
+  machineList.forEach(() => {
+    TIME_SLOTS_MONTH.forEach(slot => {
+      tableHTML += `<th class="slot-header">${escapeHtml(slot.label)}</th>`;
+    });
+  });
+  tableHTML += '</tr>';
+  tableHTML += '</thead>';
+  
+  // Body: Tage
+  tableHTML += '<tbody>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dateObj = new Date(currentYear, currentMonth - 1, day);
+    const dayOfWeek = dateObj.getDay();
+    const isSunday = dayOfWeek === 0;
+    const dayName = dayNames[dayOfWeek];
+    
+    const rowClass = isSunday ? 'sunday-row' : '';
+    tableHTML += `<tr class="${rowClass}">`;
+    
+    // Tag-Zelle
+    tableHTML += `<td class="day-cell ${isSunday ? 'sunday' : ''}">${day}<br><span class="day-name">${dayName}</span></td>`;
+    
+    // Buchungs-Zellen
+    machineList.forEach(machine => {
+      TIME_SLOTS_MONTH.forEach(slot => {
+        const booking = bookings.find(b => 
+          b.machine_id === machine.id && 
+          b.date === date && 
+          b.slot === slot.label
+        );
+        const isOwnBooking = booking && booking.user_name === currentUserName;
+        let cellClass = 'schedule-cell';
+        
+        if (isSunday && machine.type === 'washer') {
+          cellClass += ' sunday';
+        } else if (booking) {
+          cellClass += isOwnBooking ? ' own-booking' : ' booked';
+        }
+        
+        const cellContent = booking ? escapeHtml(booking.user_name) : '';
+        
+        tableHTML += `<td class="${cellClass}" 
+          data-machine-id="${machine.id}" 
+          data-date="${date}" 
+          data-slot="${escapeHtml(slot.label)}"
+          data-is-booked="${!!booking}"
+          data-is-sunday="${isSunday}"
+          data-machine-type="${machine.type}">${cellContent}</td>`;
+      });
+    });
+    
+    tableHTML += '</tr>';
+  }
+  tableHTML += '</tbody>';
+  
+  container.innerHTML = tableHTML;
+  
+  // Event-Listener für Zellen-Clicks (vereinfacht - ohne Input-Overlay für jetzt)
+  container.addEventListener('click', (e) => {
+    const cell = e.target.closest('.schedule-cell');
+    if (cell && !cell.classList.contains('sunday') && !cell.classList.contains('booked')) {
+      const machineId = parseInt(cell.dataset.machineId);
+      const date = cell.dataset.date;
+      const slot = cell.dataset.slot;
+      
+      // Einfache Buchung (vereinfacht - ohne Input-Overlay)
+      if (currentUserName) {
+        handleSlotClickForMonthWeek(machineId, slot, date);
+      } else {
+        showMessage('Bitte melden Sie sich zuerst an.', 'error');
+      }
+    }
+  });
+}
+
+/**
+ * Behandelt Slot-Click für Monats- und Wochenansicht (mit Datum aus Zelle)
+ */
+async function handleSlotClickForMonthWeek(machineId, slotLabel, date) {
+  if (!currentUser) {
+    showMessage('Bitte melden Sie sich zuerst an, um eine Buchung zu erstellen.', 'error');
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+      loginBtn.click();
+    }
+    return;
+  }
+  
+  try {
+    await createBooking(machineId, date, slotLabel);
+    showMessage('Buchung erfolgreich erstellt', 'success');
+    
+    // Ansicht neu laden
+    if (currentView === 'month') {
+      await loadMonthView();
+    } else if (currentView === 'week') {
+      await loadWeekView();
+    }
+  } catch (error) {
+    showMessage('Fehler beim Erstellen der Buchung: ' + error.message, 'error');
+    if (typeof logger !== 'undefined') {
+      logger.error('Fehler beim Erstellen der Buchung (Monat/Woche)', error);
     }
   }
 }

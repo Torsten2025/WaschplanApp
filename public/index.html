@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Waschmaschinen-Buchungsapp</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/senior.css">
     <script src="js/logger.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/monitoring.js"></script>
@@ -19,7 +20,6 @@
             <h1>GBMZ - Waschmaschinen-Buchungsapp</h1>
             <nav class="main-nav">
                 <a href="/" class="main-nav-link">Buchungen</a>
-                <a href="/senior.html" class="main-nav-link">Senioren-Ansicht</a>
                 <a href="/admin.html" class="main-nav-link">Admin</a>
                 <a href="/monitoring.html" class="main-nav-link">Monitoring</a>
             </nav>
@@ -106,14 +106,79 @@
                 <div id="slots-container" role="region" aria-label="Zeitfenster für alle Maschinen"></div>
             </section>
 
-            <!-- Bereich für Wochenübersicht -->
+            <!-- Bereich für Wochenübersicht (zettel-ähnliches Design) -->
             <section class="week-view-section hidden" id="week-view-section" aria-label="Arbeitswochenübersicht">
-                <div id="week-container" role="region" aria-label="Buchungen für die Arbeitswoche"></div>
+                <div id="week-container" role="region" aria-label="Buchungen für die Arbeitswoche">
+                    <!-- Struktur wird dynamisch generiert -->
+                    <!-- Bereich 1: Waschmaschinen -->
+                    <section class="schedule-section">
+                        <h2 class="section-title">Waschmaschinen</h2>
+                        <div class="table-wrapper">
+                            <table id="week-grid-washers" class="schedule-table" role="table" aria-label="Waschmaschinen">
+                                <!-- Tabelle wird dynamisch generiert -->
+                            </table>
+                        </div>
+                    </section>
+                    <!-- Bereich 2: Trockenräume -->
+                    <section class="schedule-section">
+                        <h2 class="section-title">Trockenräume</h2>
+                        <div class="table-wrapper">
+                            <table id="week-grid-dryers" class="schedule-table" role="table" aria-label="Trockenräume">
+                                <!-- Tabelle wird dynamisch generiert -->
+                            </table>
+                        </div>
+                    </section>
+                    <!-- Bereich 3: Tumbler -->
+                    <section class="schedule-section">
+                        <h2 class="section-title">Tumbler</h2>
+                        <div class="table-wrapper">
+                            <table id="week-grid-tumblers" class="schedule-table" role="table" aria-label="Tumbler">
+                                <!-- Tabelle wird dynamisch generiert -->
+                            </table>
+                        </div>
+                    </section>
+                </div>
             </section>
 
-            <!-- Bereich für Monatsübersicht -->
+            <!-- Bereich für Monatsübersicht (zettel-ähnliches Design) -->
             <section class="month-view-section hidden" id="month-view-section" aria-label="Monatsübersicht">
-                <div id="month-container" role="region" aria-label="Buchungen für den Monat"></div>
+                <div id="month-container" role="region" aria-label="Buchungen für den Monat">
+                    <!-- Struktur wird dynamisch generiert -->
+                    <div id="month-header" class="month-header">
+                        <div class="month-selector">
+                            <button id="month-prev" class="nav-btn" aria-label="Vorheriger Monat">←</button>
+                            <span id="month-display" class="month-display"></span>
+                            <button id="month-next" class="nav-btn" aria-label="Nächster Monat">→</button>
+                        </div>
+                    </div>
+                    <!-- Bereich 1: Waschmaschinen -->
+                    <section class="schedule-section">
+                        <h2 class="section-title">Waschmaschinen</h2>
+                        <div class="table-wrapper">
+                            <table id="month-grid-washers" class="schedule-table" role="table" aria-label="Waschmaschinen">
+                                <!-- Tabelle wird dynamisch generiert -->
+                            </table>
+                        </div>
+                    </section>
+                    <!-- Bereich 2: Trockenräume -->
+                    <section class="schedule-section">
+                        <h2 class="section-title">Trockenräume</h2>
+                        <div class="table-wrapper">
+                            <table id="month-grid-dryers" class="schedule-table" role="table" aria-label="Trockenräume">
+                                <!-- Tabelle wird dynamisch generiert -->
+                            </table>
+                        </div>
+                    </section>
+                    <!-- Bereich 3: Tumbler -->
+                    <section class="schedule-section">
+                        <h2 class="section-title">Tumbler</h2>
+                        <div class="table-wrapper">
+                            <table id="month-grid-tumblers" class="schedule-table" role="table" aria-label="Tumbler">
+                                <!-- Tabelle wird dynamisch generiert -->
+                            </table>
+                        </div>
+                    </section>
+                </div>
             </section>
         </main>
     </div>
