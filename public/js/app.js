@@ -2581,8 +2581,24 @@ async function handleSlotClickForMonthWeek(machineId, slotLabel, date) {
     return;
   }
   
+  // Hole user_name aus currentUser
+  const userName = currentUser.username;
+  
+  if (!userName) {
+    showMessage('Fehler: Benutzername nicht gefunden. Bitte melden Sie sich erneut an.', 'error');
+    return;
+  }
+  
   try {
-    await createBooking(machineId, date, slotLabel);
+    // createBooking erwartet ein Objekt mit machine_id, date, slot, user_name
+    const bookingData = {
+      machine_id: machineId,
+      date: date,
+      slot: slotLabel,
+      user_name: userName
+    };
+    
+    await createBooking(bookingData);
     showMessage('Buchung erfolgreich erstellt', 'success');
     
     // Ansicht neu laden
@@ -2595,6 +2611,8 @@ async function handleSlotClickForMonthWeek(machineId, slotLabel, date) {
     showMessage('Fehler beim Erstellen der Buchung: ' + error.message, 'error');
     if (typeof logger !== 'undefined') {
       logger.error('Fehler beim Erstellen der Buchung (Monat/Woche)', error);
+    } else {
+      console.error('Fehler beim Erstellen der Buchung (Monat/Woche):', error);
     }
   }
 }
