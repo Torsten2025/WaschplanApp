@@ -2107,8 +2107,12 @@ function navigateView(direction) {
  */
 async function loadWeekView() {
   try {
+    console.log('loadWeekView aufgerufen');
     const weekContainer = document.getElementById('week-container');
-    if (!weekContainer) return;
+    if (!weekContainer) {
+      console.error('week-container nicht gefunden');
+      return;
+    }
     
     // Initialisiere currentWeekStart falls nicht gesetzt
     if (!currentWeekStart) {
@@ -2120,13 +2124,21 @@ async function loadWeekView() {
       currentWeekStart = monday.toISOString().split('T')[0];
     }
     
+    console.log('currentWeekStart:', currentWeekStart);
+    console.log('machines.length:', machines.length);
+    
     // Stelle sicher, dass Maschinen geladen sind
     if (machines.length === 0) {
+      console.log('Lade Maschinen...');
       await loadMachines();
+      console.log('Maschinen geladen:', machines.length);
     }
     
+    console.log('Lade Wochen-Buchungen...');
     const data = await fetchBookingsWeek(currentWeekStart);
+    console.log('Wochen-Daten erhalten:', data);
     bookings = data.bookings || [];
+    console.log('Buchungen:', bookings.length);
     
     // Navigation anzeigen
     const navDisplay = document.getElementById('nav-display');
@@ -2138,9 +2150,12 @@ async function loadWeekView() {
     }
     
     // Grid rendern (zettel-ähnliches Design)
+    console.log('Rendere Week-Grid...');
     renderWeekGrid(data.week_start, data.week_end);
+    console.log('Week-Grid gerendert');
     
   } catch (error) {
+    console.error('Fehler in loadWeekView:', error);
     showMessage('Fehler beim Laden der Arbeitswoche: ' + error.message, 'error');
     if (typeof logger !== 'undefined') {
       logger.error('Fehler beim Laden der Arbeitswoche', error);
@@ -2294,12 +2309,20 @@ function renderWeekSingleGrid(containerId, machineList, dates) {
 
 async function loadMonthView() {
   try {
+    console.log('loadMonthView aufgerufen');
     const monthContainer = document.getElementById('month-container');
-    if (!monthContainer) return;
+    if (!monthContainer) {
+      console.error('month-container nicht gefunden');
+      return;
+    }
+    
+    console.log('machines.length:', machines.length);
     
     // Stelle sicher, dass Maschinen geladen sind
     if (machines.length === 0) {
+      console.log('Lade Maschinen...');
       await loadMachines();
+      console.log('Maschinen geladen:', machines.length);
     }
     
     // Monatsanzeige aktualisieren
@@ -2309,12 +2332,17 @@ async function loadMonthView() {
     setupMonthNavigation();
     
     // Buchungen für den gesamten Monat laden
+    console.log('Lade Monats-Buchungen...');
     await loadMonthBookings();
+    console.log('Monats-Buchungen geladen:', bookings.length);
     
     // Grid rendern
+    console.log('Rendere Month-Grid...');
     renderMonthGrid();
+    console.log('Month-Grid gerendert');
     
   } catch (error) {
+    console.error('Fehler in loadMonthView:', error);
     showMessage('Fehler beim Laden des Monats: ' + error.message, 'error');
     if (typeof logger !== 'undefined') {
       logger.error('Fehler beim Laden des Monats', error);
