@@ -824,24 +824,38 @@ async function register(username, password) {
 async function getCurrentUser() {
   try {
     const response = await fetch(`${API_BASE_URL}/auth/session`, {
-      credentials: 'include'
+      credentials: 'include',
+      method: 'GET'
     });
     
     if (!response.ok) {
       if (response.status === 401) {
-        return null; // Nicht eingeloggt
+        // Nicht eingeloggt - das ist normal, kein Fehler
+        if (typeof logger !== 'undefined') {
+          logger.debug('getCurrentUser: Nicht eingeloggt (401)', { status: response.status });
+        }
+        return null;
       }
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Andere Fehler als 401 sind problematisch
+      const errorText = await response.text().catch(() => '');
+      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
     }
     
     const result = await response.json();
     // Backend gibt direkt User-Objekt zurück: { id, username, role }
-    return result.success && result.data ? result.data : null;
-  } catch (error) {
+    const user = result.success && result.data ? result.data : null;
+    
     if (typeof logger !== 'undefined') {
-      logger.error('Fehler beim Abrufen des Benutzers', error);
+      logger.debug('getCurrentUser: Erfolg', { hasUser: !!user, username: user?.username });
+    }
+    
+    return user;
+  } catch (error) {
+    // Fehler beim Abrufen der Session sind OK - normale Buchungen funktionieren auch ohne Login
+    if (typeof logger !== 'undefined') {
+      logger.debug('getCurrentUser: Fehler (normal wenn nicht eingeloggt)', error);
     } else {
-      console.error('Fehler beim Abrufen des Benutzers:', error);
+      console.debug('getCurrentUser: Fehler (normal wenn nicht eingeloggt):', error);
     }
     return null;
   }
