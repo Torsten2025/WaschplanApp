@@ -126,22 +126,39 @@ async function loadBookings() {
 }
 
 function renderGrid() {
-  const container = document.getElementById('grid-container');
-  if (!container) return;
-  
   const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   
-  // Berechne Anzahl der Spalten: 1 für Tag-Label + (Maschinen × Slots)
-  const numColumns = 1 + (machines.length * TIME_SLOTS.length);
+  // Filtere Maschinen nach Typ
+  const washers = machines.filter(m => m.type === 'washer');
+  const dryers = machines.filter(m => m.type === 'dryer');
   
-  // Setze Grid-Template-Columns: 80px für Tag-Label, rest gleichmäßig verteilt
-  container.style.gridTemplateColumns = `80px repeat(${machines.length * TIME_SLOTS.length}, minmax(120px, 1fr))`;
+  // Rendere Waschmaschinen-Grid
+  renderSingleGrid('grid-washers', washers, daysInMonth);
+  
+  // Rendere Trockenräume-Grid
+  renderSingleGrid('grid-dryers', dryers, daysInMonth);
+}
+
+function renderSingleGrid(containerId, machineList, daysInMonth) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  if (machineList.length === 0) {
+    container.innerHTML = '<div style="padding: 20px; text-align: center;">Keine Maschinen verfügbar</div>';
+    return;
+  }
+  
+  // Berechne Anzahl der Spalten: 1 für Tag-Label + (Maschinen × Slots)
+  const numColumns = 1 + (machineList.length * TIME_SLOTS.length);
+  
+  // Setze Grid-Template-Columns: 60px für Tag-Label, rest gleichmäßig verteilt
+  container.style.gridTemplateColumns = `60px repeat(${machineList.length * TIME_SLOTS.length}, minmax(100px, 1fr))`;
   
   // Header-Zeile (Maschinen×Slots)
   let headerHTML = '<div class="grid-header" style="display: grid; grid-template-columns: inherit;">';
   headerHTML += '<div class="grid-header-cell grid-day-label">Tag</div>';
   
-  machines.forEach(machine => {
+  machineList.forEach(machine => {
     TIME_SLOTS.forEach(slot => {
       headerHTML += `<div class="grid-header-cell">${escapeHtml(machine.name)}<br>${escapeHtml(slot.label)}</div>`;
     });
@@ -160,12 +177,13 @@ function renderGrid() {
     rowsHTML += `<div class="grid-row" style="display: grid; grid-template-columns: inherit;">`;
     rowsHTML += `<div class="grid-day-label">${day}</div>`;
     
-    machines.forEach(machine => {
+    machineList.forEach(machine => {
       TIME_SLOTS.forEach(slot => {
         const booking = findBooking(machine.id, date, slot.label);
         const isOwnBooking = booking && booking.user_name === currentUserName;
         let cellClass = '';
         
+        // Sonntag: Nur für Waschmaschinen gesperrt
         if (isSunday && machine.type === 'washer') {
           cellClass = 'sunday';
         } else if (booking) {
@@ -189,7 +207,7 @@ function renderGrid() {
   
   container.innerHTML = headerHTML + rowsHTML;
   
-  // Event-Delegation für Zellen-Clicks (nur einmal registrieren)
+  // Event-Delegation für Zellen-Clicks
   container.removeEventListener('click', handleCellClick);
   container.addEventListener('click', handleCellClick);
 }
