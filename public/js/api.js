@@ -576,7 +576,8 @@ async function fetchBookingsWeek(startDate) {
     }
     
     const response = await fetchWithRetry(
-      `${API_BASE_URL}/bookings/week?start_date=${encodeURIComponent(startDate)}`
+      `${API_BASE_URL}/bookings/week?start_date=${encodeURIComponent(startDate)}`,
+      { credentials: 'omit' } // Öffentlicher Endpunkt, keine Auth nötig
     );
     const result = await response.json();
     
@@ -609,7 +610,8 @@ async function fetchBookingsMonth(year, month) {
     }
     
     const response = await fetchWithRetry(
-      `${API_BASE_URL}/bookings/month?year=${year}&month=${month}`
+      `${API_BASE_URL}/bookings/month?year=${year}&month=${month}`,
+      { credentials: 'omit' } // Öffentlicher Endpunkt, keine Auth nötig
     );
     const result = await response.json();
     
