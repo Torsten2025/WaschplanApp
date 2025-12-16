@@ -69,15 +69,32 @@ async function initializeSeniorView() {
   // Monatsanzeige aktualisieren
   updateMonthDisplay();
   
-  // Auto-Refresh alle 30 Sekunden
+  // Auto-Refresh für Buchungen alle 30 Sekunden
   setInterval(async () => {
     try {
       await loadBookings();
       renderGrid();
     } catch (error) {
-      console.error('Fehler beim Auto-Refresh:', error);
+      console.error('Fehler beim Auto-Refresh (Buchungen):', error);
     }
   }, 30000);
+  
+  // Auto-Refresh für Maschinen alle 2 Minuten (neue Maschinen erscheinen automatisch)
+  setInterval(async () => {
+    try {
+      // Cache invalidieren, damit neue Maschinen sofort erscheinen
+      if (typeof invalidateMachinesCache === 'function') {
+        invalidateMachinesCache();
+      }
+      await loadMachines();
+      renderGrid();
+      if (typeof logger !== 'undefined') {
+        logger.debug('Maschinen automatisch aktualisiert (Seniorenansicht)');
+      }
+    } catch (error) {
+      console.error('Fehler beim Auto-Refresh (Maschinen):', error);
+    }
+  }, 120000); // 2 Minuten
 }
 
 async function loadMachines() {
@@ -129,14 +146,23 @@ function renderGrid() {
   const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   
   // Filtere Maschinen nach Typ
+  // Waschmaschinen: nur type === 'washer'
   const washers = machines.filter(m => m.type === 'washer');
+  
+  // Trockenräume: nur type === 'dryer'
   const dryers = machines.filter(m => m.type === 'dryer');
+  
+  // Tumbler: nur type === 'tumbler'
+  const tumblers = machines.filter(m => m.type === 'tumbler');
   
   // Rendere Waschmaschinen-Grid
   renderSingleGrid('grid-washers', washers, daysInMonth);
   
   // Rendere Trockenräume-Grid
   renderSingleGrid('grid-dryers', dryers, daysInMonth);
+  
+  // Rendere Tumbler-Grid
+  renderSingleGrid('grid-tumblers', tumblers, daysInMonth);
 }
 
 function renderSingleGrid(containerId, machineList, daysInMonth) {
@@ -148,64 +174,77 @@ function renderSingleGrid(containerId, machineList, daysInMonth) {
     return;
   }
   
-  // Berechne Anzahl der Spalten: 1 für Tag-Label + (Maschinen × Slots)
-  const numColumns = 1 + (machineList.length * TIME_SLOTS.length);
+  // Wochentag-Namen (deutsch)
+  const dayNames = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
   
-  // Setze Grid-Template-Columns: 60px für Tag-Label, rest gleichmäßig verteilt
-  container.style.gridTemplateColumns = `60px repeat(${machineList.length * TIME_SLOTS.length}, minmax(100px, 1fr))`;
+  // Tabellen-HTML aufbauen
+  let tableHTML = '<thead>';
   
-  // Header-Zeile (Maschinen×Slots)
-  let headerHTML = '<div class="grid-header" style="display: grid; grid-template-columns: inherit;">';
-  headerHTML += '<div class="grid-header-cell grid-day-label">Tag</div>';
-  
+  // Erste Header-Zeile: Maschinen-Namen (colspan für alle Slots)
+  tableHTML += '<tr class="table-header-row machine-names">';
+  tableHTML += '<th class="day-header" rowspan="2">Tag</th>';
   machineList.forEach(machine => {
+    tableHTML += `<th class="machine-header" colspan="${TIME_SLOTS.length}">${escapeHtml(machine.name)}</th>`;
+  });
+  tableHTML += '</tr>';
+  
+  // Zweite Header-Zeile: Zeit-Slots
+  tableHTML += '<tr class="table-header-row time-slots">';
+  machineList.forEach(() => {
     TIME_SLOTS.forEach(slot => {
-      headerHTML += `<div class="grid-header-cell">${escapeHtml(machine.name)}<br>${escapeHtml(slot.label)}</div>`;
+      tableHTML += `<th class="slot-header">${escapeHtml(slot.label)}</th>`;
     });
   });
+  tableHTML += '</tr>';
+  tableHTML += '</thead>';
   
-  headerHTML += '</div>';
-  
-  // Zeilen (Tage)
-  let rowsHTML = '';
+  // Body: Tage
+  tableHTML += '<tbody>';
   for (let day = 1; day <= daysInMonth; day++) {
     const date = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dateObj = new Date(currentYear, currentMonth - 1, day);
     const dayOfWeek = dateObj.getDay();
     const isSunday = dayOfWeek === 0;
+    const dayName = dayNames[dayOfWeek];
     
-    rowsHTML += `<div class="grid-row" style="display: grid; grid-template-columns: inherit;">`;
-    rowsHTML += `<div class="grid-day-label">${day}</div>`;
+    // Zeile mit Sonntag-Klasse wenn Sonntag
+    const rowClass = isSunday ? 'sunday-row' : '';
+    tableHTML += `<tr class="${rowClass}">`;
     
+    // Tag-Zelle mit Tag-Nummer und Wochentag
+    tableHTML += `<td class="day-cell ${isSunday ? 'sunday' : ''}">${day}<br><span class="day-name">${dayName}</span></td>`;
+    
+    // Buchungs-Zellen für jede Maschine und jeden Slot
     machineList.forEach(machine => {
       TIME_SLOTS.forEach(slot => {
         const booking = findBooking(machine.id, date, slot.label);
         const isOwnBooking = booking && booking.user_name === currentUserName;
-        let cellClass = '';
+        let cellClass = 'schedule-cell';
         
         // Sonntag: Nur für Waschmaschinen gesperrt
         if (isSunday && machine.type === 'washer') {
-          cellClass = 'sunday';
+          cellClass += ' sunday';
         } else if (booking) {
-          cellClass = isOwnBooking ? 'own-booking' : 'booked';
+          cellClass += isOwnBooking ? ' own-booking' : ' booked';
         }
         
         const cellContent = booking ? escapeHtml(booking.user_name) : '';
         
-        rowsHTML += `<div class="grid-cell ${cellClass}" 
+        tableHTML += `<td class="${cellClass}" 
           data-machine-id="${machine.id}" 
           data-date="${date}" 
           data-slot="${escapeHtml(slot.label)}"
           data-is-booked="${!!booking}"
           data-is-sunday="${isSunday}"
-          data-machine-type="${machine.type}">${cellContent}</div>`;
+          data-machine-type="${machine.type}">${cellContent}</td>`;
       });
     });
     
-    rowsHTML += '</div>';
+    tableHTML += '</tr>';
   }
+  tableHTML += '</tbody>';
   
-  container.innerHTML = headerHTML + rowsHTML;
+  container.innerHTML = tableHTML;
   
   // Event-Delegation für Zellen-Clicks
   container.removeEventListener('click', handleCellClick);
@@ -287,7 +326,7 @@ function setupEventListeners() {
 }
 
 function handleCellClick(e) {
-  const cell = e.target.closest('.grid-cell');
+  const cell = e.target.closest('.schedule-cell');
   if (!cell) return;
   
   const isBooked = cell.dataset.isBooked === 'true';

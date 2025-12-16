@@ -2500,7 +2500,16 @@ async function handleLogin() {
   }
   
   const username = usernameInput.value.trim();
-  const password = passwordInput ? passwordInput.value : '';
+  const password = passwordInput ? passwordInput.value.trim() : '';
+  
+  // Debug: Log welche Login-Methode verwendet wird
+  if (typeof logger !== 'undefined') {
+    logger.debug('Login-Versuch', { 
+      username: username || 'leer', 
+      hasPassword: !!password && password.length > 0,
+      passwordLength: password ? password.length : 0
+    });
+  }
   
   // Einfaches Login (nur Name, kein Passwort) - für normale Benutzer
   if (!password || password.length === 0) {
@@ -2512,6 +2521,9 @@ async function handleLogin() {
     
     try {
       showMessage('Anmeldung läuft...', 'info');
+      if (typeof logger !== 'undefined') {
+        logger.debug('Verwende loginSimple für Benutzer', { username });
+      }
       const result = await loginSimple(username);
       
       // Backend gibt direkt User-Objekt zurück: { id, username, role }

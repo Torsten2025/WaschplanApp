@@ -542,6 +542,18 @@ function clearCache() {
 }
 
 /**
+ * Maschinen-Cache invalidieren (für Auto-Refresh)
+ */
+function invalidateMachinesCache() {
+  if (cache.machines) {
+    cache.machines.timestamp = 0; // Cache als ungültig markieren
+    if (typeof logger !== 'undefined') {
+      logger.debug('Maschinen-Cache invalidiert');
+    }
+  }
+}
+
+/**
  * Prüft Online-Status
  */
 function checkOnlineStatus() {
