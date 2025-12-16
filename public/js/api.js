@@ -367,9 +367,9 @@ async function fetchBookings(date, forceRefresh = false) {
  * @returns {Promise<Object>} Erstelltes Buchungs-Objekt
  */
 async function createBooking(data) {
-  // WICHTIG: user_name wird nicht mehr benötigt - kommt aus Session im Backend
-  if (!data || !data.machine_id || !data.date || !data.slot) {
-    throw new Error('Alle Felder sind erforderlich: machine_id, date, slot');
+  // user_name wird mitgesendet (für normale Buchungen ohne Login)
+  if (!data || !data.machine_id || !data.date || !data.slot || !data.user_name) {
+    throw new Error('Alle Felder sind erforderlich: machine_id, date, slot, user_name');
   }
   
   try {

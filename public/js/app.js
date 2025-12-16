@@ -1143,8 +1143,11 @@ async function handleDeleteBooking(bookingId, slotLabel) {
     } else if (errorMessage.includes('nicht gefunden') || errorMessage.includes('404')) {
       showMessage('Die Buchung wurde bereits gelöscht oder existiert nicht mehr.', 'error');
       // Buchungen trotzdem neu laden
-      const date = document.getElementById('date-input').value;
-      await loadBookings(date, true);
+      const dateInput = document.getElementById('date-input');
+      const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+      if (date) {
+        await loadBookings(date, true);
+      }
     } else {
       showMessage('Fehler beim Löschen der Buchung: ' + errorMessage, 'error');
     }
