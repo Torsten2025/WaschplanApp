@@ -2055,26 +2055,26 @@ function switchView(view) {
   const machinesSection = document.getElementById('machines-section');
   const navSection = document.getElementById('navigation-section');
   
-  // Alle verstecken
+  // Alle verstecken (verwende hidden-Klasse statt style.display wegen !important)
   [daySection, weekSection, monthSection, inputSection, machinesSection, navSection].forEach(el => {
-    if (el) el.style.display = 'none';
+    if (el) el.classList.add('hidden');
   });
   
   // Entsprechende Sektion anzeigen
   if (view === 'day') {
-    if (daySection) daySection.style.display = 'block';
-    if (inputSection) inputSection.style.display = 'block';
-    if (machinesSection) machinesSection.style.display = 'block';
+    if (daySection) daySection.classList.remove('hidden');
+    if (inputSection) inputSection.classList.remove('hidden');
+    if (machinesSection) machinesSection.classList.remove('hidden');
     // Aktuelle Buchungen laden
     const dateInput = document.getElementById('date-input');
     const date = dateInput ? dateInput.value : null;
     if (date) loadBookings(date);
   } else if (view === 'week') {
-    if (weekSection) weekSection.style.display = 'block';
-    if (navSection) navSection.style.display = 'block';
+    if (weekSection) weekSection.classList.remove('hidden');
+    if (navSection) navSection.classList.remove('hidden');
     loadWeekView();
   } else if (view === 'month') {
-    if (monthSection) monthSection.style.display = 'block';
+    if (monthSection) monthSection.classList.remove('hidden');
     // Navigation wird in der Monatsansicht selbst angezeigt (month-header)
     loadMonthView();
   }
