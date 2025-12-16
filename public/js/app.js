@@ -672,27 +672,21 @@ async function handleSlotClick(machineId, slotLabel) {
     return;
   }
   
-  // SICHERHEIT: Prüfe ob eingeloggt - wenn ja, muss Name mit Session übereinstimmen
-  if (currentUser) {
-    // User ist bereits eingeloggt - prüfe ob Name übereinstimmt
-    if (currentUser.username !== userName) {
-      showMessage(`Sie sind bereits als "${currentUser.username}" angemeldet. Bitte melden Sie sich zuerst ab, um sich als anderer Benutzer anzumelden.`, 'error');
-      return;
+  // SICHERHEIT: Prüfe ob eingeloggt - Passwort ist jetzt immer erforderlich
+  if (!currentUser) {
+    showMessage('Bitte melden Sie sich zuerst an, um eine Buchung zu erstellen.', 'error');
+    // Öffne Login-Modal
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+      loginBtn.click();
     }
-    // Name stimmt überein - weiter mit Buchung
-  } else {
-    // Nicht eingeloggt - mache einfaches Login
-    try {
-      showMessage('Melde Sie an...', 'info');
-      const user = await loginSimple(userName);
-      currentUser = user;
-      currentUserName = user.username;
-      updateAuthUI();
-      showMessage(`Willkommen, ${user.username}!`, 'success');
-    } catch (error) {
-      showMessage('Fehler beim Anmelden: ' + (error.message || 'Unbekannter Fehler'), 'error');
-      return;
-    }
+    return;
+  }
+  
+  // User ist eingeloggt - prüfe ob Name übereinstimmt
+  if (currentUser.username !== userName) {
+    showMessage(`Sie sind als "${currentUser.username}" angemeldet. Bitte verwenden Sie Ihren angemeldeten Namen oder melden Sie sich ab und neu an.`, 'error');
+    return;
   }
   
   // Validierung
@@ -2502,59 +2496,7 @@ async function handleLogin() {
   const username = usernameInput.value.trim();
   const password = passwordInput ? passwordInput.value.trim() : '';
   
-  // Debug: Log welche Login-Methode verwendet wird
-  if (typeof logger !== 'undefined') {
-    logger.debug('Login-Versuch', { 
-      username: username || 'leer', 
-      hasPassword: !!password && password.length > 0,
-      passwordLength: password ? password.length : 0
-    });
-  }
-  
-  // Einfaches Login (nur Name, kein Passwort) - für normale Benutzer
-  if (!password || password.length === 0) {
-    // Einfaches Login verwenden
-    if (!username) {
-      showMessage('Bitte geben Sie Ihren Namen ein.', 'error');
-      return;
-    }
-    
-    try {
-      showMessage('Anmeldung läuft...', 'info');
-      if (typeof logger !== 'undefined') {
-        logger.debug('Verwende loginSimple für Benutzer', { username });
-      }
-      const result = await loginSimple(username);
-      
-      // Backend gibt direkt User-Objekt zurück: { id, username, role }
-      if (result && result.username) {
-        currentUser = result;
-        currentUserName = result.username;
-        
-        // Name in localStorage speichern
-        if (typeof storage !== 'undefined') {
-          storage.setItem('waschmaschine_user_name', result.username);
-        }
-        
-        updateAuthUI();
-        closeLoginModal();
-        
-        showMessage(`Willkommen, ${result.username}!`, 'success');
-      } else {
-        showMessage('Anmeldung fehlgeschlagen.', 'error');
-      }
-    } catch (error) {
-      showMessage('Fehler bei der Anmeldung: ' + error.message, 'error');
-      if (typeof logger !== 'undefined') {
-        logger.error('Login-Fehler (einfaches Login)', error);
-      } else {
-        console.error('Login-Fehler (einfaches Login):', error);
-      }
-    }
-    return;
-  }
-  
-  // Normales Login mit Passwort (für Admin)
+  // Passwort ist jetzt immer erforderlich
   if (!username || !password) {
     showMessage('Bitte geben Sie Benutzername und Passwort ein.', 'error');
     return;
