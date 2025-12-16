@@ -298,15 +298,22 @@ app.use((req, res, next) => {
 const rateLimitStore = new Map();
 
 // Rate-Limit-Konfiguration pro Endpunkt
+// Verbessert basierend auf Stresstest-Ergebnissen
 const rateLimitConfig = {
-  '/api/slots': { maxRequests: 100, windowMs: 15 * 60 * 1000 }, // 100 Requests pro 15 Minuten
-  '/api/machines': { maxRequests: 60, windowMs: 15 * 60 * 1000 }, // 60 Requests pro 15 Minuten
-  '/api/bookings': { maxRequests: 30, windowMs: 15 * 60 * 1000 }, // 30 Requests pro 15 Minuten (GET)
-  'POST:/api/bookings': { maxRequests: 10, windowMs: 60 * 60 * 1000 }, // 10 Requests pro Stunde (POST)
-  'DELETE:/api/bookings': { maxRequests: 20, windowMs: 60 * 60 * 1000 }, // 20 Requests pro Stunde (DELETE)
-  '/api/statistics': { maxRequests: 30, windowMs: 15 * 60 * 1000 }, // 30 Requests pro 15 Minuten
-  '/api/backup': { maxRequests: 5, windowMs: 60 * 60 * 1000 }, // 5 Requests pro Stunde
-  '/api/restore': { maxRequests: 3, windowMs: 60 * 60 * 1000 } // 3 Requests pro Stunde
+  '/api/v1/slots': { maxRequests: 200, windowMs: 15 * 60 * 1000 }, // 200 Requests pro 15 Minuten (erhöht)
+  '/api/v1/machines': { maxRequests: 200, windowMs: 15 * 60 * 1000 }, // 200 Requests pro 15 Minuten (erhöht)
+  '/api/v1/bookings': { maxRequests: 100, windowMs: 15 * 60 * 1000 }, // 100 Requests pro 15 Minuten (GET, erhöht)
+  'POST:/api/v1/bookings': { maxRequests: 20, windowMs: 60 * 60 * 1000 }, // 20 Requests pro Stunde (POST, erhöht von 10)
+  'DELETE:/api/v1/bookings': { maxRequests: 30, windowMs: 60 * 60 * 1000 }, // 30 Requests pro Stunde (DELETE, erhöht)
+  // Legacy-Endpunkte (für Backward-Compatibility)
+  '/api/slots': { maxRequests: 200, windowMs: 15 * 60 * 1000 },
+  '/api/machines': { maxRequests: 200, windowMs: 15 * 60 * 1000 },
+  '/api/bookings': { maxRequests: 100, windowMs: 15 * 60 * 1000 },
+  'POST:/api/bookings': { maxRequests: 20, windowMs: 60 * 60 * 1000 },
+  'DELETE:/api/bookings': { maxRequests: 30, windowMs: 60 * 60 * 1000 },
+  '/api/statistics': { maxRequests: 30, windowMs: 15 * 60 * 1000 },
+  '/api/backup': { maxRequests: 5, windowMs: 60 * 60 * 1000 },
+  '/api/restore': { maxRequests: 3, windowMs: 60 * 60 * 1000 }
 };
 
 /**
