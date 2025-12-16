@@ -3427,13 +3427,59 @@ apiV1.post('/bookings', async (req, res) => {
             
             // Prüfe ob vor der ersten Buchung (chronologisch) - für rückwärts Buchungen
             const dateDiffBefore = new Date(firstBooking.date).getTime() - new Date(validatedDate).getTime();
-            const isConsecutiveBefore = (
+            
+            let isConsecutiveBefore = false;
+            
+            if (validatedDate === firstBooking.date) {
               // Gleicher Tag: Slot direkt davor
-              (validatedDate === firstBooking.date && newSlotIndex === firstBookingSlotIndex - 1) ||
+              isConsecutiveBefore = newSlotIndex === firstBookingSlotIndex - 1;
+            } else if (dateDiffBefore === 24 * 60 * 60 * 1000) {
               // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des aktuellen Tages
-              (newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0 &&
-               dateDiffBefore === 24 * 60 * 60 * 1000)
-            );
+              isConsecutiveBefore = (newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0);
+            } else {
+              // Die neue Buchung liegt auf einem anderen Tag
+              // Prüfe, ob es bereits Buchungen auf dem Tag der neuen Buchung gibt
+              const bookingsOnNewDate = allDryerBookingsForMachine.filter(b => b.date === validatedDate);
+              
+              if (bookingsOnNewDate.length > 0) {
+                // Es gibt bereits Buchungen auf diesem Tag
+                // Prüfe ob die neue Buchung aufeinanderfolgend zu einer bestehenden Buchung auf diesem Tag ist
+                const sortedBookings = bookingsOnNewDate
+                  .map(b => ({ ...b, slotIndex: TIME_SLOTS.findIndex(s => s.label === b.slot) }))
+                  .filter(b => b.slotIndex !== -1)
+                  .sort((a, b) => a.slotIndex - b.slotIndex);
+                
+                // Prüfe ob die neue Buchung direkt vor oder nach einer bestehenden Buchung liegt
+                for (const existingBooking of sortedBookings) {
+                  if (existingBooking.slotIndex === newSlotIndex + 1 || existingBooking.slotIndex === newSlotIndex - 1) {
+                    isConsecutiveBefore = true;
+                    break;
+                  }
+                }
+                
+                // Prüfe auch, ob die neue Buchung am Ende der Serie liegt und zur ersten Buchung am nächsten Tag passt
+                if (!isConsecutiveBefore && dateDiffBefore === 24 * 60 * 60 * 1000) {
+                  const lastBookingOnNewDate = sortedBookings[sortedBookings.length - 1];
+                  if (lastBookingOnNewDate && lastBookingOnNewDate.slotIndex === TIME_SLOTS.length - 1 && 
+                      newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0) {
+                    // Die letzte Buchung auf dem Tag der neuen Buchung ist der letzte Slot,
+                    // die neue Buchung ist auch der letzte Slot (kann nicht sein, aber zur Sicherheit)
+                    // ODER: Die neue Buchung ist der letzte Slot und die erste Buchung am nächsten Tag ist der erste Slot
+                    isConsecutiveBefore = true;
+                  } else if (newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0) {
+                    // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des nächsten Tages
+                    isConsecutiveBefore = true;
+                  }
+                }
+              } else {
+                // Keine Buchungen auf dem Tag der neuen Buchung
+                // Prüfe ob tagübergreifend aufeinanderfolgend zur ersten Buchung
+                if (dateDiffBefore === 24 * 60 * 60 * 1000 && 
+                    newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0) {
+                  isConsecutiveBefore = true;
+                }
+              }
+            }
             
             logger.debug('Buchung erstellen: Trocknungsraum - Serie-Erweiterung prüfen', {
               first_booking: { date: firstBooking.date, slot: firstBooking.slot, slot_index: firstBookingSlotIndex },
