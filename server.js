@@ -145,20 +145,20 @@ app.use(cors({
       }
     }
     
+    // Prüfe auf Render-Subdomains (z.B. https://waschplanapp.onrender.com) - ZUERST prüfen
+    const isRenderDomain = origin.match(/^https:\/\/[\w-]+\.onrender\.com$/);
+    if (isRenderDomain) {
+      logger.debug('CORS: Render-Domain erlaubt', { origin });
+      return callback(null, true);
+    }
+    
     // Prüfe ob Origin in erlaubter Liste ist
     if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-      callback(null, true);
-    } else {
-      // Prüfe auf Render-Subdomains (z.B. https://waschplanapp.onrender.com)
-      const isRenderDomain = origin.match(/^https:\/\/[\w-]+\.onrender\.com$/);
-      if (isRenderDomain) {
-        logger.debug('CORS: Render-Domain erlaubt', { origin });
-        return callback(null, true);
-      }
-      
-      logger.warn('CORS: Origin nicht erlaubt', { origin, allowedOrigins });
-      callback(new Error('CORS: Origin nicht erlaubt'));
+      return callback(null, true);
     }
+    
+    logger.warn('CORS: Origin nicht erlaubt', { origin, allowedOrigins });
+    callback(new Error('CORS: Origin nicht erlaubt'));
   },
   credentials: true, // Wichtig für Sessions
   methods: ['GET', 'POST', 'DELETE', 'PUT', 'OPTIONS'],
