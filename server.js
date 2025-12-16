@@ -201,10 +201,10 @@ const sessionConfig = {
     secure: process.env.NODE_ENV === 'production' || process.env.RENDER === 'true', // HTTPS in Produktion oder auf Render
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 Stunden
-    sameSite: (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') ? 'none' : 'lax', // 'none' für HTTPS auf Render, 'lax' für Development
+    sameSite: 'lax', // 'lax' funktioniert am besten für Same-Origin-Requests auf Render
     path: '/' // Cookie für alle Pfade gültig
-  },
-  name: 'sessionId' // Expliziter Cookie-Name für bessere Kompatibilität
+  }
+  // name weggelassen - verwende Standard-Namen 'connect.sid' für bessere Kompatibilität
 };
 
 // Versuche FileStore zu verwenden, fallback auf Memory-Store (für Render)
