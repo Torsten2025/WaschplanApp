@@ -201,9 +201,10 @@ const sessionConfig = {
     secure: process.env.NODE_ENV === 'production' || process.env.RENDER === 'true', // HTTPS in Produktion oder auf Render
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 Stunden
-    sameSite: (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') ? 'none' : 'lax' // 'none' für HTTPS auf Render, 'lax' für Development
-  }
-  // name wird weggelassen - verwende Standard-Namen 'connect.sid' für bessere Kompatibilität
+    sameSite: (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') ? 'none' : 'lax', // 'none' für HTTPS auf Render, 'lax' für Development
+    path: '/' // Cookie für alle Pfade gültig
+  },
+  name: 'sessionId' // Expliziter Cookie-Name für bessere Kompatibilität
 };
 
 // Versuche FileStore zu verwenden, fallback auf Memory-Store (für Render)
@@ -1648,11 +1649,204 @@ const apiV1 = express.Router();
 // ============================================================================
 
 // Einfaches Login (nur Name, kein Passwort) - für normale Benutzer
-// DEPRECATED: /auth/login-simple - Einfaches Login ohne Passwort wurde entfernt
-// Alle Benutzer müssen sich jetzt mit Benutzername und Passwort anmelden
 apiV1.post('/auth/login-simple', async (req, res) => {
-  // Stille Antwort (keine Warnung in Logs, da in Probephase)
-  apiResponse.error(res, 'Bitte verwenden Sie die normale Anmeldung mit Benutzername und Passwort.', 400);
+  try {
+    const { name, username } = req.body; // Unterstütze beide Varianten
+    const trimmedName = (name || username || '').trim();
+    
+    logger.debug('Einfaches Login-Versuch', { 
+      name: trimmedName ? 'vorhanden' : 'fehlt',
+      hasSession: !!req.session,
+      sessionId: req.sessionID
+    });
+    
+    if (!trimmedName) {
+      logger.warn('Einfaches Login ohne Name');
+      apiResponse.validationError(res, 'Name ist erforderlich');
+      return;
+    }
+    
+    // Validierung: Name-Länge
+    if (trimmedName.length < 2) {
+      apiResponse.validationError(res, 'Name muss mindestens 2 Zeichen lang sein');
+      return;
+    }
+    if (trimmedName.length > 50) {
+      apiResponse.validationError(res, 'Name darf maximal 50 Zeichen lang sein');
+      return;
+    }
+    
+    // Prüfe ob Benutzer existiert, sonst erstellen
+    let user = await dbHelper.get('SELECT * FROM users WHERE username = ?', [trimmedName]);
+    
+    if (!user) {
+      // Benutzer existiert nicht - erstelle automatisch (ohne Passwort)
+      logger.info('Erstelle neuen Benutzer für einfaches Login', { username: trimmedName });
+      
+      // Erstelle User ohne Passwort (password_hash = NULL für einfache Login)
+      const result = await dbHelper.run(
+        'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+        [trimmedName, null, 'user']
+      );
+      
+      user = await dbHelper.get('SELECT * FROM users WHERE id = ?', [result.lastID]);
+      logger.info('Neuer Benutzer erstellt', { userId: user.id, username: user.username });
+    }
+    
+    // Session erstellen
+    if (!req.session) {
+      logger.error('KRITISCH: req.session ist undefined!');
+      apiResponse.error(res, 'Session-Fehler', 500);
+      return;
+    }
+    
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.role = user.role;
+    
+    logger.debug('Session gesetzt (einfaches Login)', { 
+      userId: req.session.userId,
+      username: req.session.username,
+      role: req.session.role,
+      sessionId: req.sessionID
+    });
+    
+    // Session explizit speichern
+    await new Promise((resolve) => {
+      req.session.save((err) => {
+        if (err) {
+          logger.error('Fehler beim Speichern der Session', err);
+        } else {
+          logger.debug('Session erfolgreich gespeichert (einfaches Login)', { sessionId: req.sessionID });
+        }
+        resolve();
+      });
+    });
+    
+    // Last-Login aktualisieren
+    await dbHelper.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+    
+    logger.info('Einfaches Login erfolgreich', { username: user.username, sessionId: req.sessionID });
+    
+    metrics.api.auth.logins++;
+    
+    apiResponse.success(res, {
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+  } catch (error) {
+    logger.error('Fehler beim einfachen Login', error, { 
+      errorMessage: error.message,
+      errorStack: error.stack,
+      name: req.body?.name
+    });
+    apiResponse.error(res, 'Fehler beim Login', 500);
+  }
+});
+
+// Senior-Login (nur Name, kein Passwort, erstellt User mit Rolle 'senior')
+apiV1.post('/auth/login-senior', async (req, res) => {
+  try {
+    const { name, username } = req.body; // Unterstütze beide Varianten
+    const trimmedName = (name || username || '').trim();
+    
+    logger.debug('Senior-Login-Versuch', { 
+      name: trimmedName ? 'vorhanden' : 'fehlt',
+      hasSession: !!req.session,
+      sessionId: req.sessionID
+    });
+    
+    if (!trimmedName) {
+      logger.warn('Senior-Login ohne Name');
+      apiResponse.validationError(res, 'Name ist erforderlich');
+      return;
+    }
+    
+    // Validierung: Name-Länge
+    if (trimmedName.length < 2) {
+      apiResponse.validationError(res, 'Name muss mindestens 2 Zeichen lang sein');
+      return;
+    }
+    if (trimmedName.length > 50) {
+      apiResponse.validationError(res, 'Name darf maximal 50 Zeichen lang sein');
+      return;
+    }
+    
+    // Prüfe ob Benutzer existiert, sonst erstellen mit Rolle 'senior'
+    let user = await dbHelper.get('SELECT * FROM users WHERE username = ?', [trimmedName]);
+    
+    if (!user) {
+      // Benutzer existiert nicht - erstelle automatisch mit Rolle 'senior'
+      logger.info('Erstelle neuen Senior-Benutzer', { username: trimmedName });
+      
+      // Erstelle User ohne Passwort (password_hash = NULL) mit Rolle 'senior'
+      const result = await dbHelper.run(
+        'INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)',
+        [trimmedName, null, 'senior']
+      );
+      
+      user = await dbHelper.get('SELECT * FROM users WHERE id = ?', [result.lastID]);
+      logger.info('Neuer Senior-Benutzer erstellt', { userId: user.id, username: user.username });
+    } else {
+      // Benutzer existiert - aktualisiere Rolle auf 'senior' falls nötig
+      if (user.role !== 'senior') {
+        await dbHelper.run('UPDATE users SET role = ? WHERE id = ?', ['senior', user.id]);
+        user.role = 'senior';
+        logger.info('Benutzer-Rolle auf senior aktualisiert', { userId: user.id, username: user.username });
+      }
+    }
+    
+    // Session erstellen
+    if (!req.session) {
+      logger.error('KRITISCH: req.session ist undefined!');
+      apiResponse.error(res, 'Session-Fehler', 500);
+      return;
+    }
+    
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.role = user.role;
+    
+    logger.debug('Session gesetzt (Senior-Login)', { 
+      userId: req.session.userId,
+      username: req.session.username,
+      role: req.session.role,
+      sessionId: req.sessionID
+    });
+    
+    // Session explizit speichern
+    await new Promise((resolve) => {
+      req.session.save((err) => {
+        if (err) {
+          logger.error('Fehler beim Speichern der Session', err);
+        } else {
+          logger.debug('Session erfolgreich gespeichert (Senior-Login)', { sessionId: req.sessionID });
+        }
+        resolve();
+      });
+    });
+    
+    // Last-Login aktualisieren
+    await dbHelper.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [user.id]);
+    
+    logger.info('Senior-Login erfolgreich', { username: user.username, sessionId: req.sessionID });
+    
+    metrics.api.auth.logins++;
+    
+    apiResponse.success(res, {
+      id: user.id,
+      username: user.username,
+      role: user.role
+    });
+  } catch (error) {
+    logger.error('Fehler beim Senior-Login', error, { 
+      errorMessage: error.message,
+      errorStack: error.stack,
+      name: req.body?.name
+    });
+    apiResponse.error(res, 'Fehler beim Login', 500);
+  }
 });
 
 // Login (mit Passwort - für Admin)
