@@ -36,22 +36,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function initializeSeniorView() {
-  // Username aus LocalStorage laden
-  if (typeof storage !== 'undefined') {
-    currentUserName = storage.getItem('waschmaschine_user_name') || '';
+  // WICHTIG: Zuerst prüfen, ob bereits eine aktive Session vorhanden ist
+  // Nur wenn KEINE Session vorhanden ist, ein Auto-Login durchführen
+  let hasActiveSession = false;
+  
+  try {
+    if (typeof getCurrentUser === 'function') {
+      const currentUser = await getCurrentUser();
+      if (currentUser && currentUser.username) {
+        hasActiveSession = true;
+        currentUserName = currentUser.username;
+        if (typeof logger !== 'undefined') {
+          logger.debug('Aktive Session gefunden, kein Auto-Login nötig', { username: currentUser.username });
+        }
+      }
+    }
+  } catch (error) {
+    // Keine Session vorhanden - das ist OK, wird unten behandelt
+    if (typeof logger !== 'undefined') {
+      logger.debug('Keine aktive Session vorhanden');
+    }
   }
   
-  // Erleichterte Anmeldung: Automatisches Senior-Login wenn Name vorhanden
-  if (currentUserName) {
-    try {
-      const user = await loginSenior(currentUserName);
-      if (typeof logger !== 'undefined') {
-        logger.info('Erleichterte Anmeldung erfolgreich (Senioren)', { username: user.username });
-      }
-    } catch (error) {
-      // Fehler beim Auto-Login ist OK - wird beim ersten Klick nachgeholt
-      if (typeof logger !== 'undefined') {
-        logger.debug('Auto-Login fehlgeschlagen (wird beim ersten Klick nachgeholt)', error);
+  // Nur Auto-Login durchführen, wenn KEINE aktive Session vorhanden ist
+  if (!hasActiveSession) {
+    // Username aus LocalStorage laden
+    if (typeof storage !== 'undefined') {
+      const storedUserName = storage.getItem('waschmaschine_user_name') || '';
+      if (storedUserName) {
+        currentUserName = storedUserName;
+        
+        // Erleichterte Anmeldung: Automatisches Senior-Login nur wenn KEINE Session vorhanden
+        try {
+          if (typeof loginSenior === 'function') {
+            const user = await loginSenior(currentUserName);
+            if (typeof logger !== 'undefined') {
+              logger.info('Erleichterte Anmeldung erfolgreich (Senioren)', { username: user.username });
+            }
+          }
+        } catch (error) {
+          // Fehler beim Auto-Login ist OK - wird beim ersten Klick nachgeholt
+          if (typeof logger !== 'undefined') {
+            logger.debug('Auto-Login fehlgeschlagen (wird beim ersten Klick nachgeholt)', error);
+          }
+        }
       }
     }
   }
@@ -361,8 +389,21 @@ function handleCellClick(e) {
 async function showCellInput(cell, machineId, date, slot) {
   currentCell = { cell, machineId, date, slot };
   
-  // Erleichterte Anmeldung: Wenn Name vorhanden aber nicht eingeloggt, automatisch einloggen
-  if (currentUserName && typeof loginSenior === 'function') {
+  // Erleichterte Anmeldung: Nur wenn KEINE aktive Session vorhanden ist
+  let hasActiveSession = false;
+  try {
+    if (typeof getCurrentUser === 'function') {
+      const currentUser = await getCurrentUser();
+      if (currentUser && currentUser.username) {
+        hasActiveSession = true;
+        currentUserName = currentUser.username;
+      }
+    }
+  } catch (error) {
+    // Keine Session vorhanden - das ist OK
+  }
+  
+  if (!hasActiveSession && currentUserName && typeof loginSenior === 'function') {
     try {
       const user = await loginSenior(currentUserName);
       if (typeof logger !== 'undefined') {
@@ -408,8 +449,22 @@ async function saveCellInput() {
   const { machineId, date, slot } = currentCell;
   
   try {
-    // Erleichterte Anmeldung: Automatisches Senior-Login vor Buchung
-    if (typeof loginSenior === 'function') {
+    // Erleichterte Anmeldung: Automatisches Senior-Login vor Buchung, NUR wenn KEINE aktive Session vorhanden ist
+    let hasActiveSession = false;
+    try {
+      if (typeof getCurrentUser === 'function') {
+        const currentUser = await getCurrentUser();
+        if (currentUser && currentUser.username) {
+          hasActiveSession = true;
+          // Verwende den Namen aus der Session, nicht den eingegebenen Namen
+          name = currentUser.username;
+        }
+      }
+    } catch (error) {
+      // Keine Session vorhanden - das ist OK
+    }
+    
+    if (!hasActiveSession && typeof loginSenior === 'function') {
       try {
         await loginSenior(name);
         if (typeof logger !== 'undefined') {
