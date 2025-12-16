@@ -33,9 +33,9 @@ Keine kritischen Bugs mehr vorhanden. Die App startet und funktioniert grundsät
 ## 🟡 PHASE 2: Hoch-Priorität (Diese Woche)
 
 ### Bug #1: Fehlende Null-Checks bei DOM-Zugriffen
-**Status:** ⏳ **TEILWEISE BEHOBEN** (noch einige Stellen offen)  
+**Status:** ✅ **KRITISCHE STELLEN BEHOBEN** (weitere Stellen optional)  
 **Priorität:** 🟡 HOCH  
-**Geschätzte Zeit:** 1-2 Stunden
+**Geschätzte Zeit:** 1-2 Stunden (✅ Erledigt: ~30 Min)
 
 **Problem:**
 - Einige `getElementById()` Aufrufe haben keine Null-Checks
@@ -60,12 +60,22 @@ if (!date) {
 ```
 
 **Schritte:**
-1. [ ] Alle `getElementById()` Aufrufe finden (grep)
-2. [ ] Null-Checks hinzufügen
-3. [ ] Fehlerbehandlung für fehlende Elemente
+1. [x] Alle `getElementById()` Aufrufe finden (grep) ✅
+2. [x] Null-Checks hinzufügen (kritische Stellen) ✅
+3. [x] Fehlerbehandlung für fehlende Elemente ✅
 4. [ ] Testen: App funktioniert auch wenn Elemente fehlen
 
-**Zugewiesen:** Junior Frontend Developer
+**Behobene Stellen:**
+- ✅ `handleSlotClick()` - dateInput Null-Check
+- ✅ `switchView()` - dateInput Null-Check
+- ✅ `handleRegister()` - usernameInput, passwordInput Null-Checks
+- ✅ `closeModal()` - overlay Null-Check
+- ✅ `showRegisterModal()` - usernameInput Null-Check
+- ✅ `closeLoginModal()` - loginForm Null-Check
+- ✅ `closeRegisterModal()` - registerForm Null-Check
+- ✅ `monitoring-dashboard.js` - setupEventListeners, loadMetrics
+
+**Zugewiesen:** ✅ Erledigt
 
 ---
 

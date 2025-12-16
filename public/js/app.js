@@ -2441,7 +2441,10 @@ function closeLoginModal() {
   if (modal) {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
-    document.getElementById('login-form').reset();
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+      loginForm.reset();
+    }
   }
 }
 
@@ -2453,7 +2456,10 @@ function showRegisterModal() {
   if (modal) {
     modal.classList.add('active');
     modal.setAttribute('aria-hidden', 'false');
-    document.getElementById('register-username').focus();
+    const usernameInput = document.getElementById('register-username');
+    if (usernameInput) {
+      usernameInput.focus();
+    }
   }
 }
 
@@ -2465,7 +2471,10 @@ function closeRegisterModal() {
   if (modal) {
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
-    document.getElementById('register-form').reset();
+    const registerForm = document.getElementById('register-form');
+    if (registerForm) {
+      registerForm.reset();
+    }
   }
 }
 
@@ -2623,7 +2632,10 @@ async function handleRegister() {
       showMessage('Registrierung erfolgreich! Sie können sich jetzt anmelden.', 'success');
       closeRegisterModal();
       showLoginModal();
-      document.getElementById('login-username').value = username;
+      const loginUsernameInput = document.getElementById('login-username');
+      if (loginUsernameInput) {
+        loginUsernameInput.value = username;
+      }
     }
   } catch (error) {
     showMessage('Fehler bei der Registrierung: ' + error.message, 'error');

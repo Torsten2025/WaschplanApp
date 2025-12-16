@@ -20,28 +20,37 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function setupEventListeners() {
   // Refresh-Button
-  document.getElementById('refresh-btn').addEventListener('click', () => {
-    loadMetrics();
-  });
+  const refreshBtn = document.getElementById('refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      loadMetrics();
+    });
+  }
   
   // Auto-Refresh Toggle
-  document.getElementById('auto-refresh').addEventListener('change', (e) => {
-    autoRefreshEnabled = e.target.checked;
-    if (autoRefreshEnabled) {
-      startAutoRefresh();
-    } else {
-      stopAutoRefresh();
-    }
-  });
+  const autoRefresh = document.getElementById('auto-refresh');
+  if (autoRefresh) {
+    autoRefresh.addEventListener('change', (e) => {
+      autoRefreshEnabled = e.target.checked;
+      if (autoRefreshEnabled) {
+        startAutoRefresh();
+      } else {
+        stopAutoRefresh();
+      }
+    });
+  }
   
   // Refresh-Interval ändern
-  document.getElementById('refresh-interval').addEventListener('change', (e) => {
-    refreshIntervalMs = parseInt(e.target.value);
-    if (autoRefreshEnabled) {
-      stopAutoRefresh();
-      startAutoRefresh();
-    }
-  });
+  const refreshInterval = document.getElementById('refresh-interval');
+  if (refreshInterval) {
+    refreshInterval.addEventListener('change', (e) => {
+      refreshIntervalMs = parseInt(e.target.value);
+      if (autoRefreshEnabled) {
+        stopAutoRefresh();
+        startAutoRefresh();
+      }
+    });
+  }
 }
 
 /**
@@ -59,21 +68,28 @@ async function loadMetrics() {
     
     if (data.success) {
       updateDashboard(data.data);
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('dashboard-content').style.display = 'block';
-      document.getElementById('error-container').innerHTML = '';
+      const loading = document.getElementById('loading');
+      const dashboardContent = document.getElementById('dashboard-content');
+      const errorContainer = document.getElementById('error-container');
+      if (loading) loading.style.display = 'none';
+      if (dashboardContent) dashboardContent.style.display = 'block';
+      if (errorContainer) errorContainer.innerHTML = '';
       updateLastUpdateTime();
     } else {
       throw new Error(data.error || 'Unbekannter Fehler');
     }
   } catch (error) {
     console.error('Fehler beim Laden der Metriken:', error);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error-container').innerHTML = `
-      <div class="error-message">
-        <strong>Fehler beim Laden der Metriken:</strong> ${error.message}
-      </div>
-    `;
+    const loading = document.getElementById('loading');
+    const errorContainer = document.getElementById('error-container');
+    if (loading) loading.style.display = 'none';
+    if (errorContainer) {
+      errorContainer.innerHTML = `
+        <div class="error-message">
+          <strong>Fehler beim Laden der Metriken:</strong> ${error.message}
+        </div>
+      `;
+    }
   }
 }
 
