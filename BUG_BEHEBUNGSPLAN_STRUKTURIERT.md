@@ -80,9 +80,9 @@ if (!date) {
 ---
 
 ### Bug #2: Race Condition bei Cache-Invalidierung
-**Status:** ⏳ **OFFEN**  
+**Status:** ✅ **BEREITS BEHOBEN** (Cache wird NACH erfolgreichem Request gelöscht)  
 **Priorität:** 🟡 HOCH  
-**Geschätzte Zeit:** 1-2 Stunden
+**Geschätzte Zeit:** 1-2 Stunden (✅ Bereits korrekt implementiert)
 
 **Problem:**
 - Cache wird gelöscht, bevor neue Daten geladen sind
@@ -106,9 +106,9 @@ if (!date) {
 ---
 
 ### Bug #3: Fehlende Validierung bei Buchungs-Löschung
-**Status:** ⏳ **TEILWEISE BEHOBEN**  
+**Status:** ✅ **BEREITS BEHOBEN** (Vollständige Validierung in server.js Zeile 3528-3577)  
 **Priorität:** 🟡 HOCH  
-**Geschätzte Zeit:** 1 Stunde
+**Geschätzte Zeit:** 1 Stunde (✅ Bereits korrekt implementiert)
 
 **Problem:**
 - Backend prüft, ob Benutzer berechtigt ist
@@ -148,9 +148,9 @@ if (!date) {
 ---
 
 ### Bug #5: LocalStorage ohne Fehlerbehandlung
-**Status:** ⏳ **OFFEN**  
+**Status:** ✅ **BEREITS BEHOBEN** (storage.js Wrapper mit Fehlerbehandlung vorhanden)  
 **Priorität:** 🟢 MITTEL  
-**Geschätzte Zeit:** 1 Stunde
+**Geschätzte Zeit:** 1 Stunde (✅ Bereits korrekt implementiert)
 
 **Problem:**
 - `localStorage` kann fehlschlagen (z.B. im Privaten Modus)
@@ -176,9 +176,9 @@ try {
 ---
 
 ### Bug #6: CORS zu permissiv
-**Status:** ⏳ **OFFEN**  
+**Status:** ✅ **BEHOBEN** (Origin-Validierung hinzugefügt, spezifische Origins in Produktion)  
 **Priorität:** 🟢 MITTEL  
-**Geschätzte Zeit:** 30 Minuten
+**Geschätzte Zeit:** 30 Minuten (✅ Erledigt)
 
 **Problem:**
 - CORS erlaubt alle Origins (`*`)

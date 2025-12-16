@@ -122,13 +122,36 @@ const logger = {
 // In Produktion sollte origin auf spezifische Domains beschränkt werden
 const allowedOrigins = process.env.ALLOWED_ORIGIN 
   ? process.env.ALLOWED_ORIGIN.split(',').map(o => o.trim())
-  : (process.env.NODE_ENV === 'production' ? ['http://localhost:3000'] : '*');
+  : (process.env.NODE_ENV === 'production' 
+      ? ['http://localhost:3000'] // In Produktion: Spezifische Origins
+      : ['http://localhost:3000', 'http://127.0.0.1:3000']); // Development: Lokale Origins
 
+// CORS-Konfiguration mit Validierung
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Erlaube Requests ohne Origin (z.B. Postman, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // In Development: Erlaube alle lokalen Origins
+    if (process.env.NODE_ENV !== 'production') {
+      if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+        return callback(null, true);
+      }
+    }
+    
+    // Prüfe ob Origin in erlaubter Liste ist
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      logger.warn('CORS: Origin nicht erlaubt', { origin, allowedOrigins });
+      callback(new Error('CORS: Origin nicht erlaubt'));
+    }
+  },
   credentials: true, // Wichtig für Sessions
-  methods: ['GET', 'POST', 'DELETE'],
-  allowedHeaders: ['Content-Type']
+  methods: ['GET', 'POST', 'DELETE', 'PUT', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Security Headers
@@ -1915,8 +1938,15 @@ apiV1.post('/auth/logout', (req, res) => {
 });
 
 // Aktuelle Session abrufen
-apiV1.get('/auth/session', requireAuth, async (req, res) => {
+// Session-Endpoint: Prüft ob Benutzer eingeloggt ist (ohne requireAuth, damit 401 normal ist)
+apiV1.get('/auth/session', async (req, res) => {
   try {
+    // Prüfe ob Session vorhanden ist
+    if (!req.session || !req.session.userId) {
+      apiResponse.error(res, 'Nicht eingeloggt', 401);
+      return;
+    }
+    
     const user = await getCurrentUser(req);
     if (user) {
       apiResponse.success(res, {
@@ -1925,6 +1955,18 @@ apiV1.get('/auth/session', requireAuth, async (req, res) => {
         role: user.role
       });
     } else {
+      // Session vorhanden, aber User nicht in DB gefunden - Session ungültig
+      logger.warn('Session vorhanden, aber User nicht in DB gefunden', {
+        sessionId: req.sessionID,
+        userId: req.session.userId,
+        username: req.session.username
+      });
+      // Session löschen
+      req.session.destroy((err) => {
+        if (err) {
+          logger.error('Fehler beim Löschen der ungültigen Session', err);
+        }
+      });
       apiResponse.error(res, 'Session ungültig', 401);
     }
   } catch (error) {
@@ -3507,8 +3549,29 @@ apiV1.delete('/bookings/:id', async (req, res) => {
     }
     
     // Sicherheit: Prüfen ob Benutzer berechtigt ist (eigene Buchung oder Admin)
-    // Unterstützt sowohl Session-basierte Auth als auch user_name als Query-Parameter (für App ohne Login)
-    const currentUsername = req.session?.username || req.query.user_name || req.body?.user_name;
+    // Priorität: Session > Query-Parameter > Body-Parameter
+    // Wenn Session vorhanden ist, wird diese verwendet (sicherer)
+    let currentUsername;
+    if (req.session && req.session.username) {
+      // Session vorhanden - verwende Session-Username (sicherer)
+      currentUsername = req.session.username;
+      
+      // Prüfe ob user_name im Request mit Session übereinstimmt (Sicherheit)
+      const requestUserName = req.query.user_name || req.body?.user_name;
+      if (requestUserName && requestUserName.trim() !== currentUsername) {
+        logger.warn('Sicherheitswarnung: user_name im Request stimmt nicht mit Session überein', {
+          sessionUsername: currentUsername,
+          requestUserName: requestUserName,
+          booking_id: validatedId,
+          sessionId: req.sessionID
+        });
+        // Verwende trotzdem Session-Username (sicherer)
+      }
+    } else {
+      // Keine Session - verwende Query/Body-Parameter (für App ohne Login)
+      currentUsername = req.query.user_name || req.body?.user_name;
+    }
+    
     const isAdmin = req.session?.role === 'admin';
     const isOwner = booking.user_name === currentUsername;
     
@@ -3518,6 +3581,7 @@ apiV1.delete('/bookings/:id', async (req, res) => {
         booking_id: validatedId,
         booking_owner: booking.user_name,
         has_session: !!req.session,
+        session_username: req.session?.username,
         has_query_param: !!req.query.user_name,
         has_body: !!req.body?.user_name
       });
