@@ -264,6 +264,11 @@ try {
 
 app.use(session(sessionConfig));
 
+// Log Trust Proxy Status (nach Logger-Initialisierung)
+if (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') {
+  logger.info('Trust Proxy aktiviert für Render/HTTPS');
+}
+
 // Statische Dateien werden NACH API-Routen registriert (siehe unten)
 
 // Request-Logging Middleware (verbessert)
