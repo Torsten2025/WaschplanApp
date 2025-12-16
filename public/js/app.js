@@ -2581,14 +2581,16 @@ async function handleSlotClickForMonthWeek(machineId, slotLabel, date) {
   // Stelle sicher, dass das Datum im korrekten Format ist
   date = date.trim();
   
-  // Prüfe ob Datum in Vergangenheit liegt
+  // Prüfe ob Datum in Vergangenheit liegt (wie in Tagesansicht)
   const selectedDate = new Date(date + 'T00:00:00');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
   if (selectedDate < today) {
-    showMessage('Das ausgewählte Datum liegt in der Vergangenheit. Bitte wählen Sie ein zukünftiges Datum.', 'error');
-    return;
+    // Automatisch auf heute setzen, wenn Datum in Vergangenheit liegt (wie in Tagesansicht)
+    const todayStr = today.toISOString().split('T')[0];
+    date = todayStr;
+    showMessage('Das Datum wurde auf heute gesetzt, da das ausgewählte Datum in der Vergangenheit lag.', 'info');
   }
   
   // SICHERHEIT: Prüfe ob eingeloggt - Passwort ist jetzt immer erforderlich
