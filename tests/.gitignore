@@ -1,0 +1,11 @@
+# Test-Datenbank
+test-waschmaschine.db
+test-waschmaschine.db-journal
+
+# Coverage-Reports
+coverage/
+*.lcov
+
+# Jest Cache
+.jest-cache/
+

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Waschmaschinen App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+        .info {
+            color: blue;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug-Tool - Waschmaschinen App</h1>
+    
+    <div class="section">
+        <h2>1. Admin-Benutzer prüfen</h2>
+        <button onclick="checkAdminUser()">Admin-Benutzer prüfen</button>
+        <pre id="admin-user-result">Klicken Sie auf den Button...</pre>
+    </div>
+    
+    <div class="section">
+        <h2>2. Alle Buchungen direkt aus DB</h2>
+        <button onclick="checkAllBookings()">Alle Buchungen abrufen</button>
+        <pre id="all-bookings-result">Klicken Sie auf den Button...</pre>
+    </div>
+    
+    <div class="section">
+        <h2>3. Test-Buchung erstellen</h2>
+        <button onclick="createTestBooking()">Test-Buchung erstellen</button>
+        <pre id="create-booking-result">Klicken Sie auf den Button...</pre>
+    </div>
+    
+    <div class="section">
+        <h2>4. Login testen</h2>
+        <button onclick="testLogin()">Login testen (admin/admin123)</button>
+        <pre id="login-result">Klicken Sie auf den Button...</pre>
+    </div>
+    
+    <div class="section">
+        <h2>5. Session prüfen</h2>
+        <button onclick="checkSession()">Session prüfen</button>
+        <pre id="session-result">Klicken Sie auf den Button...</pre>
+    </div>
+    
+    <div class="section">
+        <h2>6. Maschinen prüfen</h2>
+        <button onclick="checkMachines()">Maschinen abrufen</button>
+        <pre id="machines-result">Klicken Sie auf den Button...</pre>
+    </div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        
+        async function checkAdminUser() {
+            const resultEl = document.getElementById('admin-user-result');
+            resultEl.textContent = 'Lade...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/debug/admin-user`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                resultEl.textContent = JSON.stringify(data, null, 2);
+                resultEl.className = response.ok ? 'success' : 'error';
+            } catch (error) {
+                resultEl.textContent = `Fehler: ${error.message}`;
+                resultEl.className = 'error';
+            }
+        }
+        
+        async function checkAllBookings() {
+            const resultEl = document.getElementById('all-bookings-result');
+            resultEl.textContent = 'Lade...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/debug/all-bookings`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                resultEl.textContent = JSON.stringify(data, null, 2);
+                resultEl.className = response.ok ? 'success' : 'error';
+            } catch (error) {
+                resultEl.textContent = `Fehler: ${error.message}`;
+                resultEl.className = 'error';
+            }
+        }
+        
+        async function createTestBooking() {
+            const resultEl = document.getElementById('create-booking-result');
+            resultEl.textContent = 'Erstelle Test-Buchung...';
+            
+            try {
+                // Erst Maschinen abrufen
+                const machinesRes = await fetch(`${API_BASE}/machines`, {
+                    credentials: 'include'
+                });
+                const machinesData = await machinesRes.json();
+                const machines = machinesData.success ? machinesData.data : machinesData;
+                
+                if (!machines || machines.length === 0) {
+                    resultEl.textContent = 'FEHLER: Keine Maschinen gefunden! Bitte erstellen Sie zuerst Maschinen.';
+                    resultEl.className = 'error';
+                    return;
+                }
+                
+                const machineId = machines[0].id;
+                const today = new Date().toISOString().split('T')[0];
+                
+                const bookingData = {
+                    machine_id: machineId,
+                    date: today,
+                    slot: '08:00-10:00',
+                    user_name: 'Test-User-Debug'
+                };
+                
+                const response = await fetch(`${API_BASE}/bookings`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(bookingData)
+                });
+                
+                const data = await response.json();
+                resultEl.textContent = `Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}`;
+                resultEl.className = response.ok ? 'success' : 'error';
+            } catch (error) {
+                resultEl.textContent = `Fehler: ${error.message}`;
+                resultEl.className = 'error';
+            }
+        }
+        
+        async function testLogin() {
+            const resultEl = document.getElementById('login-result');
+            resultEl.textContent = 'Versuche Login...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                resultEl.textContent = `Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}`;
+                resultEl.className = response.ok ? 'success' : 'error';
+            } catch (error) {
+                resultEl.textContent = `Fehler: ${error.message}`;
+                resultEl.className = 'error';
+            }
+        }
+        
+        async function checkSession() {
+            const resultEl = document.getElementById('session-result');
+            resultEl.textContent = 'Prüfe Session...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/auth/session`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                resultEl.textContent = `Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}`;
+                resultEl.className = response.ok ? 'success' : 'info';
+            } catch (error) {
+                resultEl.textContent = `Fehler: ${error.message}`;
+                resultEl.className = 'error';
+            }
+        }
+        
+        async function checkMachines() {
+            const resultEl = document.getElementById('machines-result');
+            resultEl.textContent = 'Lade Maschinen...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/machines`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                resultEl.textContent = JSON.stringify(data, null, 2);
+                resultEl.className = response.ok ? 'success' : 'error';
+            } catch (error) {
+                resultEl.textContent = `Fehler: ${error.message}`;
+                resultEl.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html>
+

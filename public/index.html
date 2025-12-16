@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waschmaschinen-Buchungsapp</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/logger.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/monitoring.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</head>
+<body>
+    <!-- Skip-Link für Keyboard-Navigation -->
+    <a href="#main-content" class="skip-link">Zum Hauptinhalt springen</a>
+    <div class="container">
+        <header>
+            <h1>GBMZ - Waschmaschinen-Buchungsapp</h1>
+            <nav style="margin-top: 10px;">
+                <a href="/" style="color: white; text-decoration: none; margin-right: 15px;">Buchungen</a>
+                <a href="/admin.html" style="color: white; text-decoration: none; margin-right: 15px;">Admin</a>
+                <a href="/monitoring.html" style="color: white; text-decoration: none;">Monitoring</a>
+            </nav>
+            <div class="header-actions">
+                <div id="user-info" class="user-info" style="display: none;">
+                    <span id="username-display" class="username-display"></span>
+                    <button id="logout-btn" class="logout-btn" aria-label="Abmelden" title="Abmelden">Abmelden</button>
+                </div>
+                <button id="login-btn" class="login-btn" aria-label="Anmelden" title="Anmelden">Anmelden</button>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Theme wechseln" title="Dark Mode umschalten">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <main id="main-content" tabindex="-1">
+            <!-- Ansichtsauswahl -->
+            <section class="view-selector-section" aria-label="Ansichtsauswahl">
+                <div class="view-buttons">
+                    <button id="view-day" class="view-btn active" data-view="day" aria-pressed="true">
+                        <span class="view-icon">📅</span>
+                        <span class="view-label">Tagesübersicht</span>
+                    </button>
+                    <button id="view-week" class="view-btn" data-view="week" aria-pressed="false">
+                        <span class="view-icon">📆</span>
+                        <span class="view-label">Arbeitswoche</span>
+                    </button>
+                    <button id="view-month" class="view-btn" data-view="month" aria-pressed="false">
+                        <span class="view-icon">🗓️</span>
+                        <span class="view-label">Monatsübersicht</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Eingabefelder (nur für Tagesübersicht) -->
+            <section class="input-section" id="input-section" aria-label="Eingabefelder">
+                <div class="input-group">
+                    <label for="date-input">Datum:</label>
+                    <input type="date" id="date-input" required aria-required="true" aria-label="Datum auswählen">
+                    <span id="date-display" class="date-display" aria-live="polite"></span>
+                </div>
+                <div class="input-group">
+                    <label for="name-input">Name:</label>
+                    <input type="text" id="name-input" placeholder="Ihr Name" required aria-required="true" aria-label="Ihr Name eingeben" autocomplete="name">
+                </div>
+            </section>
+
+            <!-- Navigation für Woche/Monat -->
+            <section class="navigation-section" id="navigation-section" style="display: none;" aria-label="Navigation">
+                <div class="nav-controls">
+                    <button id="nav-prev" class="nav-btn" aria-label="Vorherige Periode">
+                        <span>←</span>
+                    </button>
+                    <div id="nav-display" class="nav-display" aria-live="polite"></div>
+                    <button id="nav-next" class="nav-btn" aria-label="Nächste Periode">
+                        <span>→</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Bereich für Meldungen/Fehler -->
+            <section class="messages-section">
+                <div id="messages"></div>
+            </section>
+
+            <!-- Bereich für Maschinenübersicht (nur für Tagesübersicht) -->
+            <section class="machines-section" id="machines-section" aria-label="Maschinenübersicht">
+                <h2>Maschinenübersicht</h2>
+                <div id="machines-container" role="list" aria-label="Liste der verfügbaren Maschinen"></div>
+            </section>
+
+            <!-- Bereich für Tagesübersicht -->
+            <section class="day-view-section" id="day-view-section" aria-label="Tagesübersicht">
+                <div id="slots-container" role="region" aria-label="Zeitfenster für alle Maschinen"></div>
+            </section>
+
+            <!-- Bereich für Wochenübersicht -->
+            <section class="week-view-section" id="week-view-section" style="display: none;" aria-label="Arbeitswochenübersicht">
+                <div id="week-container" role="region" aria-label="Buchungen für die Arbeitswoche"></div>
+            </section>
+
+            <!-- Bereich für Monatsübersicht -->
+            <section class="month-view-section" id="month-view-section" style="display: none;" aria-label="Monatsübersicht">
+                <div id="month-container" role="region" aria-label="Buchungen für den Monat"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal für Bestätigungs-Dialoge -->
+    <div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true">
+        <div class="modal-content">
+            <h2 id="modal-title" class="modal-title"></h2>
+            <p id="modal-message" class="modal-message"></p>
+            <div class="modal-actions">
+                <button id="modal-confirm" class="modal-btn modal-btn-primary" aria-label="Bestätigen"></button>
+                <button id="modal-cancel" class="modal-btn modal-btn-secondary" aria-label="Abbrechen">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login-Modal -->
+    <div id="login-modal" class="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title" aria-hidden="true">
+        <div class="login-modal-content">
+            <h2 id="login-title" class="login-title">Anmelden</h2>
+            <form id="login-form" class="login-form">
+                <div class="input-group">
+                    <label for="login-username">Benutzername:</label>
+                    <input type="text" id="login-username" required aria-required="true" autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <label for="login-password">Passwort:</label>
+                    <input type="password" id="login-password" required aria-required="true" autocomplete="current-password">
+                </div>
+                <div class="login-actions">
+                    <button type="submit" class="modal-btn modal-btn-primary">Anmelden</button>
+                    <button type="button" id="show-register" class="modal-btn modal-btn-secondary">Registrieren</button>
+                    <button type="button" id="close-login" class="modal-btn modal-btn-secondary">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register-Modal -->
+    <div id="register-modal" class="login-modal" role="dialog" aria-modal="true" aria-labelledby="register-title" aria-hidden="true">
+        <div class="login-modal-content">
+            <h2 id="register-title" class="login-title">Registrieren</h2>
+            <form id="register-form" class="login-form">
+                <div class="input-group">
+                    <label for="register-username">Benutzername:</label>
+                    <input type="text" id="register-username" required aria-required="true" autocomplete="username" minlength="3" maxlength="50">
+                    <small>Mindestens 3 Zeichen</small>
+                </div>
+                <div class="input-group">
+                    <label for="register-password">Passwort:</label>
+                    <input type="password" id="register-password" required aria-required="true" autocomplete="new-password" minlength="6">
+                    <small>Mindestens 6 Zeichen</small>
+                </div>
+                <div class="login-actions">
+                    <button type="submit" class="modal-btn modal-btn-primary">Registrieren</button>
+                    <button type="button" id="show-login" class="modal-btn modal-btn-secondary">Anmelden</button>
+                    <button type="button" id="close-register" class="modal-btn modal-btn-secondary">Abbrechen</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast-Notification-Container -->
+    <div id="toast-container" class="toast-container" role="region" aria-live="polite" aria-label="Benachrichtigungen"></div>
+</body>
+</html>
