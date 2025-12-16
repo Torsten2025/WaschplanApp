@@ -759,12 +759,11 @@ async function handleSlotClick(machineId, slotLabel) {
     showMessage('Buchung wird erstellt...', 'info');
     
     // Debug: Logge die zu sendenden Daten
-    // user_name wird NICHT mehr gesendet - kommt aus Session im Backend
     const bookingData = {
       machine_id: machineId,
       date: date,
-      slot: slotLabel
-      // user_name wird automatisch aus der Session genommen (Backend)
+      slot: slotLabel,
+      user_name: userName  // Name wird mitgesendet
     };
     
     if (typeof logger !== 'undefined') {
@@ -1126,7 +1125,8 @@ async function handleDeleteBooking(bookingId, slotLabel) {
   try {
     showMessage('Buchung wird gelöscht...', 'info');
     
-    const date = document.getElementById('date-input').value;
+    const dateInput = document.getElementById('date-input');
+    const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
     await deleteBooking(bookingId, date);
     
     showMessage('Buchung erfolgreich gelöscht!', 'success');
@@ -2281,7 +2281,6 @@ function updateAuthUI() {
     if (nameInputGroup) {
       nameInputGroup.style.display = 'block';
     }
-    nameInput.disabled = false;
     nameInput.disabled = false;
     nameInput.placeholder = 'Ihr Name';
   }
