@@ -3410,26 +3410,40 @@ apiV1.post('/bookings', async (req, res) => {
           const lastBooking = allDryerBookingsForMachine[allDryerBookingsForMachine.length - 1];
           const lastBookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === lastBooking.slot);
           
-          if (lastBookingSlotIndex !== -1) {
+          // Prüfe ob vor der ersten Buchung (chronologisch) - für rückwärts Buchungen
+          const firstBooking = allDryerBookingsForMachine[0];
+          const firstBookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === firstBooking.slot);
+          
+          if (lastBookingSlotIndex !== -1 && firstBookingSlotIndex !== -1) {
             // Prüfe ob direkt aufeinanderfolgend NACH der letzten Buchung
+            const dateDiffAfter = new Date(validatedDate).getTime() - new Date(lastBooking.date).getTime();
             const isConsecutiveAfter = (
               // Gleicher Tag: nächster Slot
               (validatedDate === lastBooking.date && newSlotIndex === lastBookingSlotIndex + 1) ||
               // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des nächsten Tages
               (lastBookingSlotIndex === TIME_SLOTS.length - 1 && newSlotIndex === 0 &&
-               new Date(validatedDate).getTime() === new Date(lastBooking.date).getTime() + 24 * 60 * 60 * 1000)
+               dateDiffAfter === 24 * 60 * 60 * 1000)
             );
             
             // Prüfe ob vor der ersten Buchung (chronologisch) - für rückwärts Buchungen
-            const firstBooking = allDryerBookingsForMachine[0];
-            const firstBookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === firstBooking.slot);
-            const isConsecutiveBefore = firstBookingSlotIndex !== -1 && (
+            const dateDiffBefore = new Date(firstBooking.date).getTime() - new Date(validatedDate).getTime();
+            const isConsecutiveBefore = (
               // Gleicher Tag: Slot direkt davor
               (validatedDate === firstBooking.date && newSlotIndex === firstBookingSlotIndex - 1) ||
               // Tagübergreifend: letzter Slot des Vortags zu erstem Slot des aktuellen Tages
               (newSlotIndex === TIME_SLOTS.length - 1 && firstBookingSlotIndex === 0 &&
-               new Date(firstBooking.date).getTime() === new Date(validatedDate).getTime() + 24 * 60 * 60 * 1000)
+               dateDiffBefore === 24 * 60 * 60 * 1000)
             );
+            
+            logger.debug('Buchung erstellen: Trocknungsraum - Serie-Erweiterung prüfen', {
+              first_booking: { date: firstBooking.date, slot: firstBooking.slot, slot_index: firstBookingSlotIndex },
+              last_booking: { date: lastBooking.date, slot: lastBooking.slot, slot_index: lastBookingSlotIndex },
+              new_booking: { date: validatedDate, slot: validatedSlot, slot_index: newSlotIndex },
+              date_diff_after_ms: dateDiffAfter,
+              date_diff_before_ms: dateDiffBefore,
+              is_consecutive_after: isConsecutiveAfter,
+              is_consecutive_before: isConsecutiveBefore
+            });
             
             if (isConsecutiveAfter || isConsecutiveBefore) {
               extendsSeries = true;
