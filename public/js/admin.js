@@ -702,7 +702,7 @@ async function loadBookings() {
                 <td>${booking.id || '-'}</td>
                 <td>${booking.date || '-'}</td>
                 <td>${booking.slot || '-'}</td>
-                <td>${escapeHtml(booking.machine_name || 'Unbekannt')} (${booking.machine_type === 'washer' ? 'Waschmaschine' : 'Trocknungsraum'})</td>
+                <td>${escapeHtml(booking.machine_name || 'Unbekannt')} (${booking.machine_type === 'washer' ? 'Waschmaschine' : booking.machine_type === 'tumbler' ? 'Tumbler' : 'Trocknungsraum'})</td>
                 <td>${escapeHtml(booking.user_name || 'Unbekannt')}</td>
                 <td>
                   <button class="btn-admin btn-delete" onclick="deleteBooking(${booking.id})">Löschen</button>
@@ -850,7 +850,7 @@ async function loadMachines() {
               <tr>
                 <td>${machine.id || '-'}</td>
                 <td>${escapeHtml(machine.name || 'Unbekannt')}</td>
-                <td>${machine.type === 'washer' ? 'Waschmaschine' : 'Trocknungsraum'}</td>
+                <td>${machine.type === 'washer' ? 'Waschmaschine' : machine.type === 'tumbler' ? 'Tumbler' : 'Trocknungsraum'}</td>
                 <td>
                   <button class="btn-admin btn-edit" onclick="editMachine(${machine.id}, '${escapeHtml(machine.name || '')}', '${machine.type || 'washer'}')">Bearbeiten</button>
                   <button class="btn-admin btn-delete" onclick="deleteMachine(${machine.id})">Löschen</button>

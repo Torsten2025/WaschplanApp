@@ -272,12 +272,22 @@ function renderMachines() {
     return;
   }
   
-  container.innerHTML = machines.map(machine => `
-    <div class="machine-card" role="listitem" aria-label="${escapeHtml(machine.name)} - ${machine.type === 'washer' ? 'Waschmaschine' : 'Trocknungsraum'}">
+  container.innerHTML = machines.map(machine => {
+    let typeLabel = 'Unbekannt';
+    if (machine.type === 'washer') {
+      typeLabel = 'Waschmaschine';
+    } else if (machine.type === 'dryer') {
+      typeLabel = 'Trocknungsraum';
+    } else if (machine.type === 'tumbler') {
+      typeLabel = 'Tumbler';
+    }
+    return `
+    <div class="machine-card" role="listitem" aria-label="${escapeHtml(machine.name)} - ${typeLabel}">
       <div class="machine-name">${escapeHtml(machine.name)}</div>
-      <div class="machine-type">${machine.type === 'washer' ? 'Waschmaschine' : 'Trocknungsraum'}</div>
+      <div class="machine-type">${typeLabel}</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 /**

@@ -814,7 +814,11 @@ function initDatabase() {
           { name: 'Waschmaschine 1', type: 'washer' },
           { name: 'Waschmaschine 2', type: 'washer' },
           { name: 'Waschmaschine 3', type: 'washer' },
-          { name: 'Trocknungsraum 1', type: 'dryer' }
+          { name: 'Trocknungsraum 1', type: 'dryer' },
+          { name: 'Trocknungsraum 2', type: 'dryer' },
+          { name: 'Trocknungsraum 3', type: 'dryer' },
+          { name: 'Tumbler 1', type: 'tumbler' },
+          { name: 'Tumbler 2', type: 'tumbler' }
         ];
 
         let inserted = 0;
