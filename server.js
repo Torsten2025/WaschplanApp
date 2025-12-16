@@ -1807,14 +1807,12 @@ apiV1.post('/auth/login', async (req, res) => {
       sessionId: req.sessionID,
       cookieSecure: sessionConfig.cookie.secure,
       nodeEnv: process.env.NODE_ENV,
-      isRender: process.env.RENDER === 'true'
+      isRender: process.env.RENDER === 'true',
+      cookieName: sessionConfig.name
     });
     
     // Metriken aktualisieren
     metrics.api.auth.logins++;
-    
-    // Response mit explizitem Cookie-Header für Debugging
-    res.cookie('sessionId', req.sessionID, sessionConfig.cookie);
     
     apiResponse.success(res, {
       id: user.id,
