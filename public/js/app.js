@@ -628,7 +628,7 @@ function createSlotElement(slot, machine, booking, isBooked, isOwnBooking) {
            tabindex="${slotIndex === 0 ? '0' : '-1'}">
         <span class="slot-time">${slot.label}</span>
         <span class="slot-user">${escapeHtml(booking.user_name)}</span>
-        ${isOwnBooking ? `<button class="delete-btn" onclick="handleDeleteBooking(${booking.id}, '${slot.label}')" title="Buchung löschen" aria-label="Buchung für ${slot.label} löschen" tabindex="0">✕</button>` : ''}
+        ${isOwnBooking ? `<button class="delete-btn" data-booking-id="${booking.id}" title="Buchung löschen" aria-label="Buchung für ${slot.label} löschen" tabindex="0">✕</button>` : ''}
       </div>
     `;
   } else {
@@ -1611,6 +1611,35 @@ function setupSlotClickDelegation() {
         targetClass: e.target.className,
         targetId: e.target.id
       });
+    }
+    
+    // Prüfe zuerst, ob der Click auf einem Delete-Button war
+    const deleteBtn = e.target.closest('.delete-btn');
+    if (deleteBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const bookingId = deleteBtn.dataset.bookingId;
+      if (!bookingId) {
+        if (typeof logger !== 'undefined') {
+          logger.warn('Delete-Button geklickt, aber keine booking-id gefunden', {
+            button: deleteBtn
+          });
+        } else {
+          console.warn('Delete-Button geklickt, aber keine booking-id gefunden', deleteBtn);
+        }
+        return;
+      }
+      
+      if (typeof logger !== 'undefined') {
+        logger.debug('Delete-Button geklickt', {
+          bookingId: bookingId
+        });
+      }
+      
+      // Rufe handleDeleteBooking auf
+      handleDeleteBooking(parseInt(bookingId));
+      return;
     }
     
     // Prüfe ob Klick auf einem freien Slot war (oder innerhalb eines freien Slots)
