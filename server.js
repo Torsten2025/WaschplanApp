@@ -201,7 +201,7 @@ const sessionConfig = {
     secure: process.env.NODE_ENV === 'production' || process.env.RENDER === 'true', // HTTPS in Produktion oder auf Render
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 Stunden
-    sameSite: 'lax' // Wichtig für CORS und Cross-Site-Requests
+    sameSite: (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') ? 'none' : 'lax' // 'none' für HTTPS auf Render, 'lax' für Development
   }
   // name wird weggelassen - verwende Standard-Namen 'connect.sid' für bessere Kompatibilität
 };
@@ -2476,7 +2476,8 @@ app.get('/api/monitoring/health', async (req, res) => {
  */
 app.post('/api/v1/monitoring/events', express.json({ limit: '1mb' }), async (req, res) => {
   try {
-    const { errors, performance, activities, timestamp, userAgent, url, sessionId } = req.body;
+    // Optional chaining für req.body, falls es undefined ist
+    const { errors = [], performance = [], activities = [], timestamp, userAgent, url, sessionId } = req.body || {};
     
     // Events loggen (in Produktion könnte man hier z.B. an ein Logging-System senden)
     if (errors && errors.length > 0) {
