@@ -202,8 +202,8 @@ const sessionConfig = {
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000, // 24 Stunden
     sameSite: 'lax' // Wichtig für CORS und Cross-Site-Requests
-  },
-  name: 'sessionId' // Expliziter Cookie-Name für bessere Kompatibilität
+  }
+  // name wird weggelassen - verwende Standard-Namen 'connect.sid' für bessere Kompatibilität
 };
 
 // Versuche FileStore zu verwenden, fallback auf Memory-Store (für Render)
@@ -1841,8 +1841,7 @@ apiV1.post('/auth/login', async (req, res) => {
       sessionId: req.sessionID,
       cookieSecure: sessionConfig.cookie.secure,
       nodeEnv: process.env.NODE_ENV,
-      isRender: process.env.RENDER === 'true',
-      cookieName: sessionConfig.name
+      isRender: process.env.RENDER === 'true'
     });
     
     // Metriken aktualisieren
@@ -1981,8 +1980,24 @@ apiV1.post('/auth/logout', (req, res) => {
 // Session-Endpoint: Prüft ob Benutzer eingeloggt ist (ohne requireAuth, damit 401 normal ist)
 apiV1.get('/auth/session', async (req, res) => {
   try {
+    // Debug-Logging für Session-Check
+    logger.debug('Session-Check', {
+      hasSession: !!req.session,
+      hasUserId: !!(req.session && req.session.userId),
+      sessionId: req.sessionID,
+      userId: req.session?.userId,
+      username: req.session?.username,
+      cookies: req.headers.cookie ? 'vorhanden' : 'fehlt',
+      cookieHeader: req.headers.cookie
+    });
+    
     // Prüfe ob Session vorhanden ist
     if (!req.session || !req.session.userId) {
+      logger.debug('Session-Check: Nicht eingeloggt', {
+        hasSession: !!req.session,
+        hasUserId: !!(req.session && req.session.userId),
+        sessionId: req.sessionID
+      });
       apiResponse.error(res, 'Nicht eingeloggt', 401);
       return;
     }
