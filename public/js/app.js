@@ -2296,14 +2296,21 @@ async function checkAuthStatus() {
  */
 function updateAuthUI() {
   const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
   const userInfo = document.getElementById('user-info');
   const usernameDisplay = document.getElementById('username-display');
   const nameInput = document.getElementById('name-input');
   
   // Null-Checks für alle Elemente
-  if (!loginBtn || !userInfo || !usernameDisplay || !nameInput) {
+  if (!loginBtn || !logoutBtn || !userInfo || !usernameDisplay || !nameInput) {
     if (typeof logger !== 'undefined') {
-      logger.warn('Einige Auth-UI-Elemente nicht gefunden');
+      logger.warn('Einige Auth-UI-Elemente nicht gefunden', {
+        loginBtn: !!loginBtn,
+        logoutBtn: !!logoutBtn,
+        userInfo: !!userInfo,
+        usernameDisplay: !!usernameDisplay,
+        nameInput: !!nameInput
+      });
     } else {
       console.warn('Einige Auth-UI-Elemente nicht gefunden');
     }
@@ -2313,6 +2320,7 @@ function updateAuthUI() {
   if (currentUser && currentUser.username) {
     // Eingeloggt (optional - für Admin-Funktionen)
     loginBtn.style.display = 'none';
+    logoutBtn.style.display = 'block';
     userInfo.style.display = 'flex';
     userInfo.classList.remove('hidden');
     usernameDisplay.textContent = currentUser.username;
@@ -2327,6 +2335,7 @@ function updateAuthUI() {
   } else {
     // Nicht eingeloggt (normal - normale Buchungen funktionieren ohne Login)
     loginBtn.style.display = 'block';
+    logoutBtn.style.display = 'none';
     userInfo.style.display = 'none';
     userInfo.classList.add('hidden');
     
