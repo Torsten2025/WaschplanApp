@@ -15,7 +15,6 @@ const PORT = process.env.PORT || 3000;
 // Render läuft hinter einem Proxy, Express muss wissen, dass die Verbindung HTTPS ist
 if (process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') {
   app.set('trust proxy', 1);
-  logger.info('Trust Proxy aktiviert für Render/HTTPS');
 }
 
 // ============================================================================
