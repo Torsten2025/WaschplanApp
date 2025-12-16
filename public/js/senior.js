@@ -131,8 +131,14 @@ function renderGrid() {
   
   const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
   
+  // Berechne Anzahl der Spalten: 1 für Tag-Label + (Maschinen × Slots)
+  const numColumns = 1 + (machines.length * TIME_SLOTS.length);
+  
+  // Setze Grid-Template-Columns: 80px für Tag-Label, rest gleichmäßig verteilt
+  container.style.gridTemplateColumns = `80px repeat(${machines.length * TIME_SLOTS.length}, minmax(120px, 1fr))`;
+  
   // Header-Zeile (Maschinen×Slots)
-  let headerHTML = '<div class="grid-header">';
+  let headerHTML = '<div class="grid-header" style="display: grid; grid-template-columns: inherit;">';
   headerHTML += '<div class="grid-header-cell grid-day-label">Tag</div>';
   
   machines.forEach(machine => {
@@ -151,7 +157,7 @@ function renderGrid() {
     const dayOfWeek = dateObj.getDay();
     const isSunday = dayOfWeek === 0;
     
-    rowsHTML += '<div class="grid-row">';
+    rowsHTML += `<div class="grid-row" style="display: grid; grid-template-columns: inherit;">`;
     rowsHTML += `<div class="grid-day-label">${day}</div>`;
     
     machines.forEach(machine => {
@@ -183,7 +189,8 @@ function renderGrid() {
   
   container.innerHTML = headerHTML + rowsHTML;
   
-  // Event-Delegation für Zellen-Clicks
+  // Event-Delegation für Zellen-Clicks (nur einmal registrieren)
+  container.removeEventListener('click', handleCellClick);
   container.addEventListener('click', handleCellClick);
 }
 

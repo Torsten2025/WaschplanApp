@@ -74,11 +74,14 @@ body {
     border: 2px solid #333;
     overflow-x: auto;
     width: 100%;
+    /* Grid-Spalten werden dynamisch in JavaScript gesetzt */
 }
 
 /* Grid-Header (Maschinen×Slots) */
 .grid-header {
-    display: contents;
+    display: grid;
+    grid-column: 1 / -1;
+    /* Spalten werden dynamisch gesetzt */
 }
 
 .grid-header-cell {
@@ -92,6 +95,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 10;
+    border: 1px solid #1aa87a;
 }
 
 .grid-header-cell.grid-day-label {
@@ -104,7 +108,9 @@ body {
 
 /* Grid-Zeilen (Tage) */
 .grid-row {
-    display: contents;
+    display: grid;
+    grid-column: 1 / -1;
+    /* Spalten werden dynamisch gesetzt */
 }
 
 .grid-day-label {
@@ -112,12 +118,15 @@ body {
     padding: 15px 10px;
     text-align: center;
     font-weight: 600;
-    font-size: 16px;
+    font-size: 18px;
     min-width: 80px;
     position: sticky;
     left: 0;
     z-index: 5;
     border-right: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Grid-Zellen (Buchungen) */
