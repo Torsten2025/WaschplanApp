@@ -4248,10 +4248,8 @@ async function runMigrations() {
   }
 }
 
-// Migrationen beim Serverstart ausführen
-runMigrations().catch(error => {
-  logger.error('Kritischer Fehler: Migrationen konnten nicht ausgeführt werden', error);
-});
+// Migrationen werden bereits in der Datenbank-Initialisierung ausgeführt (siehe initDatabase)
+// Kein separater Aufruf nötig, da dies zu Race Conditions führen kann
 
 // API-Route: Schema-Version abrufen
 app.get('/api/migrations/version', async (req, res) => {
