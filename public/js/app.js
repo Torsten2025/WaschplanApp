@@ -650,22 +650,27 @@ function createSlotElement(slot, machine, booking, isBooked, isOwnBooking) {
  * Behandelt Klick auf einen freien Slot
  */
 async function handleSlotClick(machineId, slotLabel) {
+  // WICHTIG: Nur eingeloggte Benutzer können buchen
+  if (!currentUser || !currentUser.username) {
+    showMessage('Sie müssen sich anmelden, um Buchungen zu erstellen. Bitte klicken Sie auf "Anmelden" oben rechts.', 'error');
+    // Öffne Login-Modal
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) {
+      loginBtn.click();
+    }
+    return;
+  }
+  
   const dateInput = document.getElementById('date-input');
-  const nameInput = document.getElementById('name-input');
   
   let date = dateInput.value;
-  const userName = nameInput.value.trim();
+  // Verwende Benutzername aus Session (nicht aus Input-Feld)
+  const userName = currentUser.username;
   
   // Validierung
   if (!date) {
     showMessage('Bitte wählen Sie ein Datum aus.', 'error');
     dateInput.focus();
-    return;
-  }
-  
-  if (!userName) {
-    showMessage('Bitte geben Sie Ihren Namen ein.', 'error');
-    nameInput.focus();
     return;
   }
   
@@ -741,11 +746,12 @@ async function handleSlotClick(machineId, slotLabel) {
     showMessage('Buchung wird erstellt...', 'info');
     
     // Debug: Logge die zu sendenden Daten
+    // WICHTIG: user_name wird NICHT mehr gesendet - kommt aus Session im Backend
     const bookingData = {
       machine_id: machineId,
       date: date,
-      slot: slotLabel,
-      user_name: userName
+      slot: slotLabel
+      // user_name wird automatisch aus der Session genommen (Backend)
     };
     
     if (typeof logger !== 'undefined') {
@@ -2242,7 +2248,11 @@ function updateAuthUI() {
     userInfo.style.display = 'flex';
     usernameDisplay.textContent = currentUser.username;
     
-    // Name-Input mit Benutzername vorausfüllen
+    // Name-Input verstecken (nicht mehr benötigt - Benutzername kommt aus Session)
+    const nameInputGroup = nameInput.closest('.input-group');
+    if (nameInputGroup) {
+      nameInputGroup.style.display = 'none';
+    }
     nameInput.value = currentUser.username;
     nameInput.disabled = true;
   } else {
@@ -2250,8 +2260,13 @@ function updateAuthUI() {
     loginBtn.style.display = 'block';
     userInfo.style.display = 'none';
     
-    // Name-Input aktivieren
+    // Name-Input anzeigen (aber wird nicht mehr für Buchungen verwendet - nur für Info)
+    const nameInputGroup = nameInput.closest('.input-group');
+    if (nameInputGroup) {
+      nameInputGroup.style.display = 'block';
+    }
     nameInput.disabled = false;
+    nameInput.placeholder = 'Bitte melden Sie sich an, um zu buchen';
   }
 }
 
