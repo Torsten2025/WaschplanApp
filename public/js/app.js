@@ -1572,6 +1572,12 @@ function showModal(title, message, confirmText = 'Bestätigen') {
  */
 function closeModal() {
   const overlay = document.getElementById('modal-overlay');
+  if (!overlay) {
+    if (typeof logger !== 'undefined') {
+      logger.warn('Modal-Overlay nicht gefunden beim Schließen');
+    }
+    return;
+  }
   overlay.classList.remove('active');
   overlay.setAttribute('aria-hidden', 'true');
   
