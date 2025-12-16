@@ -2384,10 +2384,13 @@ async function handleLogin() {
       // Prüfe, ob dies der erste Login auf diesem Gerät ist
       const hasSeenWelcome = storage.getItem('waschmaschine_welcome_shown') === 'true';
       if (!hasSeenWelcome) {
-        showMessage(`Herzlich willkommen auf der GBMZ-Waschbuchungsapp, ${result.username}!`, 'success');
+        showMessage(
+          `Herzlich willkommen in der GBMZ-Waschküche, ${result.username}! Schön, dass Sie unsere Buchungsapp nutzen.`,
+          'success'
+        );
         storage.setItem('waschmaschine_welcome_shown', 'true');
       } else {
-        showMessage(`Willkommen zurück, ${result.username}!`, 'success');
+        showMessage(`Willkommen zurück in der GBMZ-Waschküche, ${result.username}!`, 'success');
       }
     } else {
       showMessage('Anmeldung fehlgeschlagen.', 'error');
@@ -2444,7 +2447,7 @@ async function handleRegister() {
 
       // Spezielle Willkommensnachricht für neue Nutzer:innen
       showMessage(
-        `Registrierung erfolgreich! Herzlich willkommen auf der GBMZ-Waschbuchungsapp, ${result.user.username}!`,
+        `Registrierung erfolgreich! Herzlich willkommen in der GBMZ-Waschküche, ${result.user.username}!`,
         'success'
       );
       storage.setItem('waschmaschine_welcome_shown', 'true');
