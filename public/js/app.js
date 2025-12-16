@@ -2101,6 +2101,21 @@ async function loadWeekView() {
     const weekContainer = document.getElementById('week-container');
     if (!weekContainer) return;
     
+    // Initialisiere currentWeekStart falls nicht gesetzt
+    if (!currentWeekStart) {
+      const today = new Date();
+      const dayOfWeek = today.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Montag = 1, Sonntag = 0
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + diff);
+      currentWeekStart = monday.toISOString().split('T')[0];
+    }
+    
+    // Stelle sicher, dass Maschinen geladen sind
+    if (machines.length === 0) {
+      await loadMachines();
+    }
+    
     const data = await fetchBookingsWeek(currentWeekStart);
     bookings = data.bookings || [];
     
