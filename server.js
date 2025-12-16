@@ -1611,9 +1611,10 @@ function requireAdmin(req, res, next) {
       hasSession: !!req.session,
       hasUserId: !!(req.session && req.session.userId),
       role: req.session?.role,
-      sessionId: req.sessionID
+      sessionId: req.sessionID,
+      cookies: req.headers.cookie ? 'vorhanden' : 'fehlt'
     });
-    apiResponse.error(res, 'Admin-Rechte erforderlich', 403);
+    apiResponse.unauthorized(res, 'Admin-Rechte erforderlich');
   }
 }
 
@@ -1647,13 +1648,11 @@ const apiV1 = express.Router();
 // ============================================================================
 
 // Einfaches Login (nur Name, kein Passwort) - für normale Benutzer
-// DEPRECATED: /auth/login-simple - Einfaches Login ohne Passwort wurde entfernt aus Sicherheitsgründen
+// DEPRECATED: /auth/login-simple - Einfaches Login ohne Passwort wurde entfernt
 // Alle Benutzer müssen sich jetzt mit Benutzername und Passwort anmelden
 apiV1.post('/auth/login-simple', async (req, res) => {
-  logger.warn('Vereinfachtes Login ohne Passwort wurde aufgerufen, aber ist nicht mehr erlaubt', { 
-    body: req.body 
-  });
-  apiResponse.error(res, 'Vereinfachtes Login ohne Passwort ist nicht mehr verfügbar. Bitte verwenden Sie die normale Anmeldung mit Benutzername und Passwort.', 400);
+  // Stille Antwort (keine Warnung in Logs, da in Probephase)
+  apiResponse.error(res, 'Bitte verwenden Sie die normale Anmeldung mit Benutzername und Passwort.', 400);
 });
 
 // Login (mit Passwort - für Admin)
@@ -3477,45 +3476,22 @@ apiV1.delete('/bookings/:id', async (req, res) => {
     }
     
     // Sicherheit: Prüfen ob Benutzer berechtigt ist (eigene Buchung oder Admin)
-    // Priorität: Session > Query-Parameter > Body-Parameter
-    // Wenn Session vorhanden ist, wird diese verwendet (sicherer)
-    let currentUsername;
-    if (req.session && req.session.username) {
-      // Session vorhanden - verwende Session-Username (sicherer)
-      currentUsername = req.session.username;
-      
-      // Prüfe ob user_name im Request mit Session übereinstimmt (Sicherheit)
-      const requestUserName = req.query.user_name || req.body?.user_name;
-      if (requestUserName && requestUserName.trim() !== currentUsername) {
-        logger.warn('Sicherheitswarnung: user_name im Request stimmt nicht mit Session überein', {
-          sessionUsername: currentUsername,
-          requestUserName: requestUserName,
-          booking_id: validatedId,
-          sessionId: req.sessionID
-        });
-        // Verwende trotzdem Session-Username (sicherer)
-      }
-    } else {
-      // Keine Session - verwende Query/Body-Parameter (für App ohne Login)
-      currentUsername = req.query.user_name || req.body?.user_name;
-    }
-    
-    const isAdmin = req.session?.role === 'admin';
-    const isOwner = booking.user_name === currentUsername;
-    
-    // Wenn kein Benutzername vorhanden (weder Session noch Parameter), kann nicht löschen
-    if (!currentUsername) {
-      logger.warn('Buchung löschen: Kein Benutzername angegeben', {
+    // SICHERHEIT: Nur eingeloggte Benutzer können Buchungen löschen
+    // Session ist jetzt erforderlich - keine Query-Parameter mehr erlaubt
+    if (!req.session || !req.session.username) {
+      logger.warn('Buchung löschen: Keine Session vorhanden', {
         booking_id: validatedId,
         booking_owner: booking.user_name,
         has_session: !!req.session,
-        session_username: req.session?.username,
-        has_query_param: !!req.query.user_name,
-        has_body: !!req.body?.user_name
+        sessionId: req.sessionID
       });
-      apiResponse.unauthorized(res, 'Bitte geben Sie Ihren Namen an, um Buchungen zu löschen');
+      apiResponse.unauthorized(res, 'Bitte melden Sie sich an, um Buchungen zu löschen');
       return;
     }
+    
+    const currentUsername = req.session.username;
+    const isAdmin = req.session.role === 'admin';
+    const isOwner = booking.user_name === currentUsername;
     
     if (!isOwner && !isAdmin) {
       logger.warn('Buchung löschen: Keine Berechtigung', {
