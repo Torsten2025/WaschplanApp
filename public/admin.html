@@ -5,204 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin-Bereich - Waschmaschinen-App</title>
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .admin-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #2c3e50;
-            color: white;
-            border-radius: 8px;
-        }
-        
-        .admin-nav {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        
-        .admin-nav button {
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
-            color: #666;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-        
-        .admin-nav button.active {
-            color: #2c3e50;
-            border-bottom-color: #2c3e50;
-            font-weight: bold;
-        }
-        
-        .admin-section {
-            display: none;
-        }
-        
-        .admin-section.active {
-            display: block;
-        }
-        
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .admin-table th {
-            background: #2c3e50;
-            color: white;
-            padding: 12px;
-            text-align: left;
-        }
-        
-        .admin-table td {
-            padding: 12px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        .admin-table tr:hover {
-            background: #f5f5f5;
-        }
-        
-        .btn-admin {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            margin: 0 3px;
-        }
-        
-        .btn-edit {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-delete {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .form-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .form-modal.active {
-            display: flex;
-        }
-        
-        .form-modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        
-        .login-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: bold;
-        }
-        
-        .status-admin {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .status-user {
-            background: #3498db;
-            color: white;
-        }
-        
-        .btn-primary {
-            background: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-        
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .btn-secondary:hover {
-            background: #7f8c8d;
-        }
-        
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .password-warning {
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
     <!-- Login-Bereich (wird ausgeblendet wenn eingeloggt) -->
@@ -219,33 +22,33 @@
             </div>
             <button type="submit" class="btn-primary">Anmelden</button>
         </form>
-        <div id="login-error" style="color: #e74c3c; margin-top: 10px; display: none;"></div>
+        <div id="login-error" class="login-error"></div>
     </div>
 
     <!-- Admin-Bereich (wird angezeigt wenn eingeloggt) -->
-    <div id="admin-section" style="display: none;">
+    <div id="admin-section">
         <div class="admin-container">
             <div class="admin-header">
                 <div>
                     <h1>🔧 Admin-Bereich</h1>
-                    <nav style="margin-top: 10px;">
-                        <a href="/" style="color: white; text-decoration: none; margin-right: 15px;">Buchungen</a>
-                        <a href="/admin.html" style="color: white; text-decoration: none; margin-right: 15px;">Admin</a>
-                        <a href="/monitoring.html" style="color: white; text-decoration: none;">Monitoring</a>
+                    <nav class="admin-header-nav">
+                        <a href="/" class="admin-header-link">Buchungen</a>
+                        <a href="/admin.html" class="admin-header-link">Admin</a>
+                        <a href="/monitoring.html" class="admin-header-link">Monitoring</a>
                     </nav>
                 </div>
                 <div>
                     <span id="current-user"></span>
-                    <button id="change-password-btn" class="btn-secondary" style="margin-left: 15px;">Passwort ändern</button>
-                    <button id="logout-btn" class="btn-danger" style="margin-left: 10px;">Abmelden</button>
+                    <button id="change-password-btn" class="btn-secondary btn-spacing-lg">Passwort ändern</button>
+                    <button id="logout-btn" class="btn-danger btn-spacing-sm">Abmelden</button>
                 </div>
             </div>
             
             <!-- Passwort-Änderung Warnung (wenn Standard-Passwort) -->
-            <div id="password-warning" class="password-warning" style="display: none;">
-                <div style="background: #e74c3c; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div id="password-warning" class="password-warning">
+                <div class="password-warning-box">
                     <strong>⚠️ Sicherheitswarnung:</strong> Sie verwenden noch das Standard-Passwort. Bitte ändern Sie es sofort!
-                    <button onclick="showChangePasswordModal()" style="margin-left: 10px; padding: 5px 15px; background: white; color: #e74c3c; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Jetzt ändern</button>
+                    <button onclick="showChangePasswordModal()" class="password-warning-button">Jetzt ändern</button>
                 </div>
             </div>
 
@@ -257,10 +60,10 @@
 
             <!-- Buchungen-Verwaltung -->
             <section id="bookings-tab" class="admin-section active">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="section-header-row">
                     <h2>Buchungen verwalten</h2>
                     <div>
-                        <input type="date" id="bookings-filter-date" style="padding: 8px; margin-right: 10px;">
+                        <input type="date" id="bookings-filter-date" class="section-header-input">
                         <button onclick="loadBookings()" class="btn-primary">Aktualisieren</button>
                     </div>
                 </div>
@@ -271,7 +74,7 @@
 
             <!-- Maschinen-Verwaltung -->
             <section id="machines-tab" class="admin-section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="section-header-row">
                     <h2>Maschinen verwalten</h2>
                     <button onclick="showMachineForm()" class="btn-primary">+ Neue Maschine</button>
                 </div>
@@ -282,7 +85,7 @@
 
             <!-- Benutzer-Verwaltung -->
             <section id="users-tab" class="admin-section">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="section-header-row">
                     <h2>Benutzer verwalten</h2>
                     <button onclick="showUserForm()" class="btn-primary">+ Neuer Benutzer</button>
                 </div>
@@ -299,18 +102,18 @@
             <h2 id="machine-modal-title">Neue Maschine</h2>
             <form id="machine-form">
                 <input type="hidden" id="machine-id">
-                <div style="margin-bottom: 15px;">
+                <div class="form-group">
                     <label for="machine-name">Name:</label>
-                    <input type="text" id="machine-name" required style="width: 100%; padding: 8px;">
+                    <input type="text" id="machine-name" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
+                <div class="form-group">
                     <label for="machine-type">Typ:</label>
-                    <select id="machine-type" required style="width: 100%; padding: 8px;">
+                    <select id="machine-type" required class="form-input">
                         <option value="washer">Waschmaschine</option>
                         <option value="dryer">Trocknungsraum</option>
                     </select>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <div class="modal-actions">
                     <button type="button" onclick="closeMachineModal()" class="btn-secondary">Abbrechen</button>
                     <button type="submit" class="btn-primary">Speichern</button>
                 </div>
@@ -324,23 +127,23 @@
             <h2 id="user-modal-title">Neuer Benutzer</h2>
             <form id="user-form">
                 <input type="hidden" id="user-id">
-                <div style="margin-bottom: 15px;">
+                <div class="form-group">
                     <label for="user-username">Benutzername:</label>
-                    <input type="text" id="user-username" required style="width: 100%; padding: 8px;">
+                    <input type="text" id="user-username" required class="form-input">
                 </div>
-                <div style="margin-bottom: 15px;">
+                <div class="form-group">
                     <label for="user-password">Passwort:</label>
-                    <input type="password" id="user-password" style="width: 100%; padding: 8px;">
-                    <small style="color: #666;">Nur ausfüllen wenn Passwort geändert werden soll</small>
+                    <input type="password" id="user-password" class="form-input">
+                    <small class="password-help-text">Nur ausfüllen wenn Passwort geändert werden soll</small>
                 </div>
-                <div style="margin-bottom: 15px;">
+                <div class="form-group">
                     <label for="user-role">Rolle:</label>
-                    <select id="user-role" required style="width: 100%; padding: 8px;">
+                    <select id="user-role" required class="form-input">
                         <option value="user">Benutzer</option>
                         <option value="admin">Admin</option>
                     </select>
                 </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <div class="modal-actions">
                     <button type="button" onclick="closeUserModal()" class="btn-secondary">Abbrechen</button>
                     <button type="submit" class="btn-primary">Speichern</button>
                 </div>

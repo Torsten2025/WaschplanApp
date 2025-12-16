@@ -1,0 +1,287 @@
+/* Admin-spezifisches Layout (aus admin.html ausgelagert für CSP-Kompatibilität) */
+
+.admin-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #2c3e50;
+  color: white;
+  border-radius: 8px;
+}
+
+.admin-header-nav {
+  margin-top: 10px;
+}
+
+.admin-header-link {
+  color: white;
+  text-decoration: none;
+  margin-right: 15px;
+}
+
+.admin-header-link:last-child {
+  margin-right: 0;
+}
+
+.admin-nav {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.admin-nav button {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s;
+}
+
+.admin-nav button.active {
+  color: #2c3e50;
+  border-bottom-color: #2c3e50;
+  font-weight: bold;
+}
+
+.admin-section {
+  display: none;
+}
+
+.admin-section.active {
+  display: block;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-table th {
+  background: #2c3e50;
+  color: white;
+  padding: 12px;
+  text-align: left;
+}
+
+.admin-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.admin-table tr:hover {
+  background: #f5f5f5;
+}
+
+.btn-admin {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin: 0 3px;
+}
+
+.btn-edit {
+  background: #3498db;
+  color: white;
+}
+
+.btn-delete {
+  background: #e74c3c;
+  color: white;
+}
+
+.form-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-modal.active {
+  display: flex;
+}
+
+.form-modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.login-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.login-error {
+  color: #e74c3c;
+  margin-top: 10px;
+  display: none;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.status-admin {
+  background: #e74c3c;
+  color: white;
+}
+
+.status-user {
+  background: #3498db;
+  color: white;
+}
+
+.btn-primary {
+  background: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-primary:hover {
+  background: #2980b9;
+}
+
+.btn-secondary {
+  background: #95a5a6;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-secondary:hover {
+  background: #7f8c8d;
+}
+
+.btn-danger {
+  background: #e74c3c;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-danger:hover {
+  background: #c0392b;
+}
+
+.btn-spacing-lg {
+  margin-left: 15px;
+}
+
+.btn-spacing-sm {
+  margin-left: 10px;
+}
+
+.password-warning {
+  margin-bottom: 20px;
+}
+
+#password-warning {
+  display: none;
+}
+
+.password-warning-box {
+  background: #e74c3c;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.password-warning-button {
+  margin-left: 10px;
+  padding: 5px 15px;
+  background: white;
+  color: #e74c3c;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header-input {
+  padding: 8px;
+  margin-right: 10px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.password-help-text {
+  color: #666;
+}
+
+/* Standardmäßig Admin-Bereich ausblenden, Login-Fehler etc. per JS steuern */
+#admin-section {
+  display: none;
+}
+
+
