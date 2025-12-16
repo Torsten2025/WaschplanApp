@@ -12,6 +12,32 @@
             padding: 20px;
         }
         
+        .monitoring-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #2c3e50;
+            border-radius: 8px;
+        }
+        
+        .monitoring-nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+        
+        .monitoring-nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .monitoring-nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
         .monitoring-header {
             display: flex;
             justify-content: space-between;
@@ -250,6 +276,12 @@
 </head>
 <body>
     <div class="monitoring-container">
+        <nav class="monitoring-nav">
+            <a href="/" class="monitoring-nav-link">Buchungen</a>
+            <a href="/senior.html" class="monitoring-nav-link">Senioren-Ansicht</a>
+            <a href="/admin.html" class="monitoring-nav-link">Admin</a>
+            <a href="/monitoring.html" class="monitoring-nav-link active">Monitoring</a>
+        </nav>
         <div class="monitoring-header">
             <div>
                 <h1>📊 Monitoring-Dashboard</h1>

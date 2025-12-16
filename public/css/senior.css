@@ -26,6 +26,44 @@ body {
     margin-bottom: 20px;
 }
 
+.senior-nav {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8fffe 0%, #ffffff 100%);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(32, 201, 151, 0.1);
+    flex-wrap: wrap;
+}
+
+.senior-nav-link {
+    padding: 12px 24px;
+    background: #ffffff;
+    color: #20C997;
+    text-decoration: none;
+    border: 2px solid #20C997;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(32, 201, 151, 0.2);
+}
+
+.senior-nav-link:hover {
+    background: linear-gradient(135deg, #20C997 0%, #17a085 100%);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(32, 201, 151, 0.4);
+}
+
+.senior-nav-link.active {
+    background: linear-gradient(135deg, #20C997 0%, #17a085 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(32, 201, 151, 0.4);
+}
+
 .senior-header {
     text-align: center;
     margin-bottom: 40px;
