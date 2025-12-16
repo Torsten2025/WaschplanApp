@@ -2270,6 +2270,11 @@ async function loadMonthView() {
     const monthContainer = document.getElementById('month-container');
     if (!monthContainer) return;
     
+    // Stelle sicher, dass Maschinen geladen sind
+    if (machines.length === 0) {
+      await loadMachines();
+    }
+    
     // Monatsanzeige aktualisieren
     updateMonthDisplay();
     
