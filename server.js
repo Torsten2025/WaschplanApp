@@ -3112,9 +3112,9 @@ apiV1.post('/bookings', async (req, res) => {
         return;
       }
       
-      // Prüfe wie viele verschiedene Waschmaschinen bereits gebucht sind
+      // Prüfe wie viele verschiedene Waschmaschinen bereits gebucht sind und welche Slots
       const washerBookingsToday = await dbHelper.all(
-        `SELECT DISTINCT b.machine_id 
+        `SELECT b.machine_id, b.slot
          FROM bookings b
          INNER JOIN machines m ON b.machine_id = m.id
          WHERE b.user_name = ? AND b.date = ? AND m.type = 'washer'`,
@@ -3123,19 +3123,61 @@ apiV1.post('/bookings', async (req, res) => {
       
       const washerMachineCount = washerBookingsToday.length;
       
+      // NEUE REGEL: Alle Waschmaschinen-Buchungen müssen denselben Slot haben
+      if (washerMachineCount > 0) {
+        // Prüfe ob alle bereits gebuchten Slots identisch sind
+        const existingSlots = [...new Set(washerBookingsToday.map(b => b.slot))];
+        
+        if (existingSlots.length > 1) {
+          // Das sollte eigentlich nicht passieren, aber zur Sicherheit prüfen
+          logger.error('Buchung erstellen: Inkonsistente Slot-Buchungen gefunden', {
+            user_name: validatedUserName,
+            date: validatedDate,
+            existing_slots: existingSlots
+          });
+          apiResponse.validationError(res,
+            `Fehler: Sie haben bereits Waschmaschinen-Buchungen mit verschiedenen Slots für ${validatedDate}. ` +
+            `Alle Waschmaschinen-Buchungen müssen denselben Slot haben.`
+          );
+          return;
+        }
+        
+        // Alle vorhandenen Buchungen haben denselben Slot - prüfe ob der neue Slot übereinstimmt
+        const existingSlot = existingSlots[0];
+        if (existingSlot !== validatedSlot) {
+          logger.warn('Buchung erstellen: Slot stimmt nicht mit bereits gebuchten Waschmaschinen überein', {
+            user_name: validatedUserName,
+            date: validatedDate,
+            existing_slot: existingSlot,
+            requested_slot: validatedSlot
+          });
+          apiResponse.validationError(res,
+            `Sie haben bereits Waschmaschinen für den Slot ${existingSlot} gebucht. ` +
+            `Alle Waschmaschinen-Buchungen am selben Tag müssen denselben Slot haben. ` +
+            `Bitte wählen Sie den Slot ${existingSlot} für diese Waschmaschine.`
+          );
+          return;
+        }
+      }
+      
       // Wenn bereits 3 verschiedene Waschmaschinen gebucht sind und diese Maschine nicht dabei ist
       if (washerMachineCount >= MAX_WASHER_MACHINES_PER_DAY) {
-        logger.warn('Buchung erstellen: Tageslimit für Waschmaschinen erreicht', {
-          user_name: validatedUserName,
-          date: validatedDate,
-          current_count: washerMachineCount,
-          limit: MAX_WASHER_MACHINES_PER_DAY
-        });
-        apiResponse.validationError(res,
-          `Sie haben bereits ${washerMachineCount} verschiedene Waschmaschinen für ${validatedDate} gebucht. ` +
-          `Maximum: ${MAX_WASHER_MACHINES_PER_DAY} verschiedene Waschmaschinen pro Tag.`
-        );
-        return;
+        // Prüfe ob diese Maschine bereits gebucht ist
+        const isMachineAlreadyBooked = washerBookingsToday.some(b => b.machine_id === validatedMachineId);
+        if (!isMachineAlreadyBooked) {
+          logger.warn('Buchung erstellen: Tageslimit für Waschmaschinen erreicht', {
+            user_name: validatedUserName,
+            date: validatedDate,
+            current_count: washerMachineCount,
+            limit: MAX_WASHER_MACHINES_PER_DAY,
+            machine_id: validatedMachineId
+          });
+          apiResponse.validationError(res,
+            `Sie haben bereits ${washerMachineCount} verschiedene Waschmaschinen für ${validatedDate} gebucht. ` +
+            `Maximum: ${MAX_WASHER_MACHINES_PER_DAY} verschiedene Waschmaschinen pro Tag.`
+          );
+          return;
+        }
       }
       
       logger.debug('Buchung erstellen: Waschmaschinen-Prüfung erfolgreich', {
