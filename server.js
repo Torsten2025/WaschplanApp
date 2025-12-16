@@ -1603,6 +1603,11 @@ async function getCurrentUser(req) {
 // TEMPORÄRER ADMIN-RESET ENDPOINT (NUR FÜR NOTFALL - NACH GEBRAUCH ENTFERNEN!)
 // WICHTIG: Muss VOR allen anderen Routen sein, damit er nicht abgefangen wird!
 // ============================================================================
+
+// API-Router für Versionierung
+const apiV1 = express.Router();
+
+// ============================================================================
 // AUTH-ENDPUNKTE
 // ============================================================================
 
