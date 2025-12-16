@@ -651,6 +651,13 @@ p {
     width: 60%;
 }
 
+/* Skeleton-Titel für Slots (ohne Inline-Styles) */
+.skeleton-text-title {
+    width: 60%;
+    height: 24px;
+    margin-bottom: 15px;
+}
+
 /* Modal-Styling */
 .modal-overlay {
     position: fixed;
@@ -845,6 +852,32 @@ button:focus-visible,
     top: 0;
     outline: 3px solid var(--gbmz-primary);
     outline-offset: 2px;
+}
+
+/* Header-Navigation ohne Inline-Styles */
+.main-nav {
+    margin-top: 10px;
+}
+
+.main-nav-link {
+    color: var(--header-text);
+    text-decoration: none;
+    margin-right: 15px;
+}
+
+.main-nav-link:last-child {
+    margin-right: 0;
+}
+
+/* Generische Utility-Klassen */
+.hidden {
+    display: none !important;
+}
+
+.loading-centered {
+    text-align: center;
+    padding: 20px;
+    color: #666;
 }
 
 /* Login-Modal */

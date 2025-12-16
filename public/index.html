@@ -17,13 +17,13 @@
     <div class="container">
         <header>
             <h1>GBMZ - Waschmaschinen-Buchungsapp</h1>
-            <nav style="margin-top: 10px;">
-                <a href="/" style="color: white; text-decoration: none; margin-right: 15px;">Buchungen</a>
-                <a href="/admin.html" style="color: white; text-decoration: none; margin-right: 15px;">Admin</a>
-                <a href="/monitoring.html" style="color: white; text-decoration: none;">Monitoring</a>
+            <nav class="main-nav">
+                <a href="/" class="main-nav-link">Buchungen</a>
+                <a href="/admin.html" class="main-nav-link">Admin</a>
+                <a href="/monitoring.html" class="main-nav-link">Monitoring</a>
             </nav>
             <div class="header-actions">
-                <div id="user-info" class="user-info" style="display: none;">
+                <div id="user-info" class="user-info hidden">
                     <span id="username-display" class="username-display"></span>
                     <button id="logout-btn" class="logout-btn" aria-label="Abmelden" title="Abmelden">Abmelden</button>
                 </div>
@@ -77,7 +77,7 @@
             </section>
 
             <!-- Navigation für Woche/Monat -->
-            <section class="navigation-section" id="navigation-section" style="display: none;" aria-label="Navigation">
+            <section class="navigation-section hidden" id="navigation-section" aria-label="Navigation">
                 <div class="nav-controls">
                     <button id="nav-prev" class="nav-btn" aria-label="Vorherige Periode">
                         <span>←</span>
@@ -106,12 +106,12 @@
             </section>
 
             <!-- Bereich für Wochenübersicht -->
-            <section class="week-view-section" id="week-view-section" style="display: none;" aria-label="Arbeitswochenübersicht">
+            <section class="week-view-section hidden" id="week-view-section" aria-label="Arbeitswochenübersicht">
                 <div id="week-container" role="region" aria-label="Buchungen für die Arbeitswoche"></div>
             </section>
 
             <!-- Bereich für Monatsübersicht -->
-            <section class="month-view-section" id="month-view-section" style="display: none;" aria-label="Monatsübersicht">
+            <section class="month-view-section hidden" id="month-view-section" aria-label="Monatsübersicht">
                 <div id="month-container" role="region" aria-label="Buchungen für den Monat"></div>
             </section>
         </main>

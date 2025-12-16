@@ -1362,7 +1362,7 @@ function showLoading(containerId, type = 'default') {
   } else if (type === 'slots') {
     container.innerHTML = `
       <div class="machine-slots">
-        <div class="skeleton skeleton-text" style="width: 60%; height: 24px; margin-bottom: 15px;"></div>
+        <div class="skeleton skeleton-text skeleton-text-title" aria-hidden="true"></div>
         <div class="slots-grid">
           <div class="skeleton skeleton-slot"></div>
           <div class="skeleton skeleton-slot"></div>
@@ -1374,7 +1374,7 @@ function showLoading(containerId, type = 'default') {
       </div>
     `;
   } else {
-    container.innerHTML = `<div style="text-align: center; padding: 20px; color: #666;" role="status" aria-live="polite">Lädt...</div>`;
+    container.innerHTML = `<div class="loading-centered" role="status" aria-live="polite">Lädt...</div>`;
   }
 }
 
