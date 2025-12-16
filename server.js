@@ -3309,21 +3309,44 @@ apiV1.post('/bookings', async (req, res) => {
             return;
           }
           
-          // Prüfe ob Trocknungsraum-Slot frühestens ab frühestem Waschmaschinen-Slot beginnt
-          if (requestedSlotIndex < earliestWasherSlotIndex) {
-            logger.warn('Buchung erstellen: Trocknungsraum-Slot vor frühestem Waschmaschinen-Slot', {
-              user_name: validatedUserName,
-              date: validatedDate,
-              requested_slot: validatedSlot,
-              requested_slot_index: requestedSlotIndex,
-              earliest_washer_slot: earliestWasherBooking.slot,
-              earliest_washer_slot_index: earliestWasherSlotIndex
-            });
-            apiResponse.validationError(res,
-              `Der Trocknungsraum-Slot muss frühestens ab dem frühesten Waschmaschinen-Slot (${earliestWasherBooking.slot}) beginnen. ` +
-              `Sie haben ${validatedSlot} gewählt, was vor diesem Slot liegt.`
-            );
-            return;
+          // Prüfe ob bereits eine Trocknungsraum-Buchung existiert für diesen Trockenraum
+          // Wenn nicht, muss die erste Buchung MIT dem frühesten Waschmaschinen-Slot beginnen
+          if (allDryerBookingsForMachine.length === 0) {
+            // Erste Buchung: Muss MIT dem frühesten Waschmaschinen-Slot beginnen
+            if (requestedSlotIndex !== earliestWasherSlotIndex) {
+              logger.warn('Buchung erstellen: Erste Trocknungsraum-Buchung muss mit Waschmaschinen-Slot beginnen', {
+                user_name: validatedUserName,
+                date: validatedDate,
+                requested_slot: validatedSlot,
+                requested_slot_index: requestedSlotIndex,
+                earliest_washer_slot: earliestWasherBooking.slot,
+                earliest_washer_slot_index: earliestWasherSlotIndex
+              });
+              apiResponse.validationError(res,
+                `Die erste Trocknungsraum-Buchung muss mit dem frühesten Waschmaschinen-Slot (${earliestWasherBooking.slot}) beginnen. ` +
+                `Sie haben ${validatedSlot} gewählt. Bitte buchen Sie zuerst den Slot ${earliestWasherBooking.slot}.`
+              );
+              return;
+            }
+          } else {
+            // Weitere Buchungen: Müssen aufeinanderfolgend sein
+            // Die Prüfung erfolgt später in der Serie-Logik
+            // Hier prüfen wir nur, ob der Slot nicht vor dem Waschmaschinen-Slot liegt
+            if (requestedSlotIndex < earliestWasherSlotIndex) {
+              logger.warn('Buchung erstellen: Trocknungsraum-Slot vor frühestem Waschmaschinen-Slot', {
+                user_name: validatedUserName,
+                date: validatedDate,
+                requested_slot: validatedSlot,
+                requested_slot_index: requestedSlotIndex,
+                earliest_washer_slot: earliestWasherBooking.slot,
+                earliest_washer_slot_index: earliestWasherSlotIndex
+              });
+              apiResponse.validationError(res,
+                `Der Trocknungsraum-Slot darf nicht vor dem frühesten Waschmaschinen-Slot (${earliestWasherBooking.slot}) liegen. ` +
+                `Sie haben ${validatedSlot} gewählt.`
+              );
+              return;
+            }
           }
         }
       }
@@ -3430,9 +3453,8 @@ apiV1.post('/bookings', async (req, res) => {
           return;
         }
         
-        // Regel 4: Am Folgetag nur max 1 Slot
+        // Regel 4: Am Folgetag nur max 1 Slot (und nur der erste Slot 07:00-12:00)
         // Prüfe ob es eine tagübergreifende Buchung ist (Folgetag)
-        // BUGFIX: Prüfung auch ohne extendsSeries durchführen (z.B. wenn man den ersten Slot am Folgetag bucht)
         if (allDryerBookingsForMachine.length > 0) {
           const lastBooking = allDryerBookingsForMachine[allDryerBookingsForMachine.length - 1];
           const isNextDay = new Date(validatedDate).getTime() === new Date(lastBooking.date).getTime() + 24 * 60 * 60 * 1000;
@@ -3449,6 +3471,20 @@ apiV1.post('/bookings', async (req, res) => {
               });
               apiResponse.validationError(res,
                 `Am Folgetag ist maximal 1 Zeitslot erlaubt. Sie haben bereits ${bookingsOnNextDay.length} Slot${bookingsOnNextDay.length > 1 ? 's' : ''} am ${validatedDate} gebucht.`
+              );
+              return;
+            }
+            
+            // Am Folgetag darf nur der erste Slot (07:00-12:00) gebucht werden
+            if (newSlotIndex !== 0) {
+              logger.warn('Buchung erstellen: Am Folgetag nur erster Slot erlaubt', {
+                user_name: validatedUserName,
+                date: validatedDate,
+                requested_slot: validatedSlot,
+                requested_slot_index: newSlotIndex
+              });
+              apiResponse.validationError(res,
+                `Am Folgetag darf nur der erste Slot (${TIME_SLOTS[0].label}) gebucht werden. Sie haben ${validatedSlot} gewählt.`
               );
               return;
             }
