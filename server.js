@@ -3087,8 +3087,8 @@ apiV1.post('/bookings', async (req, res) => {
     const isDryer = machine.type === 'dryer' || machine.type === 'tumbler';
     
     // Konfigurierbare Limits (Standard-Werte)
-    // REGEL 3: Maximal 2 Waschmaschinen-Slots pro Person pro Tag
-    const MAX_WASHER_MACHINES_PER_DAY = parseInt(process.env.MAX_WASHER_MACHINES_PER_DAY) || 2;
+    // REGEL 3: Maximal 3 Waschmaschinen-Slots pro Person pro Tag
+    const MAX_WASHER_MACHINES_PER_DAY = parseInt(process.env.MAX_WASHER_MACHINES_PER_DAY) || 3;
     
     if (isWasher) {
       // Prüfe ob bereits ein Slot für diese Maschine an diesem Tag gebucht ist
@@ -3316,14 +3316,14 @@ apiV1.post('/bookings', async (req, res) => {
       // Prüfe Slot-Serien: Nur aufeinanderfolgende Slots sind erlaubt (bis zu 3)
       // Verwende allDryerBookingsForMachine (bereits oben definiert)
       
-      if (existingDryerBookingsForMachine.length > 0) {
+      if (allDryerBookingsForMachine.length > 0) {
         // Finde die längste Serie von aufeinanderfolgenden Slots
         let maxSeriesLength = 0;
         let currentSeriesLength = 1;
         let lastDate = null;
         let lastSlotIndex = -1;
         
-        for (const booking of existingDryerBookingsForMachine) {
+        for (const booking of allDryerBookingsForMachine) {
           const bookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === booking.slot);
           if (bookingSlotIndex === -1) continue;
           
@@ -3357,8 +3357,8 @@ apiV1.post('/bookings', async (req, res) => {
         }
         
         let extendsSeries = false;
-        if (existingDryerBookingsForMachine.length > 0) {
-          const lastBooking = existingDryerBookingsForMachine[existingDryerBookingsForMachine.length - 1];
+        if (allDryerBookingsForMachine.length > 0) {
+          const lastBooking = allDryerBookingsForMachine[allDryerBookingsForMachine.length - 1];
           const lastBookingSlotIndex = TIME_SLOTS.findIndex(s => s.label === lastBooking.slot);
           
           if (lastBookingSlotIndex !== -1) {
@@ -3382,7 +3382,7 @@ apiV1.post('/bookings', async (req, res) => {
           user_name: validatedUserName,
           date: validatedDate,
           slot: validatedSlot,
-          existing_bookings_count: existingDryerBookingsForMachine.length,
+          existing_bookings_count: allDryerBookingsForMachine.length,
           max_series_length: maxSeriesLength,
           extends_series: extendsSeries
         });
@@ -3402,13 +3402,13 @@ apiV1.post('/bookings', async (req, res) => {
         
         // Regel 4: Am Folgetag nur max 1 Slot
         // Prüfe ob es eine tagübergreifende Buchung ist (Folgetag)
-        if (extendsSeries && existingDryerBookingsForMachine.length > 0) {
-          const lastBooking = existingDryerBookingsForMachine[existingDryerBookingsForMachine.length - 1];
+        if (extendsSeries && allDryerBookingsForMachine.length > 0) {
+          const lastBooking = allDryerBookingsForMachine[allDryerBookingsForMachine.length - 1];
           const isNextDay = new Date(validatedDate).getTime() === new Date(lastBooking.date).getTime() + 24 * 60 * 60 * 1000;
           
           if (isNextDay) {
             // Prüfe wie viele Slots bereits am Folgetag gebucht sind
-            const bookingsOnNextDay = existingDryerBookingsForMachine.filter(b => b.date === validatedDate);
+            const bookingsOnNextDay = allDryerBookingsForMachine.filter(b => b.date === validatedDate);
             
             if (bookingsOnNextDay.length >= 1) {
               logger.warn('Buchung erstellen: Am Folgetag bereits 1 Slot gebucht', {
@@ -3425,16 +3425,16 @@ apiV1.post('/bookings', async (req, res) => {
         }
         
         // Prüfe ob die neue Buchung nicht aufeinanderfolgend ist
-        if (!extendsSeries && existingDryerBookingsForMachine.length > 0) {
+        if (!extendsSeries && allDryerBookingsForMachine.length > 0) {
           logger.warn('Buchung erstellen: Trocknungsraum-Buchung nicht aufeinanderfolgend', {
             user_name: validatedUserName,
             date: validatedDate,
             slot: validatedSlot,
-            existing_bookings: existingDryerBookingsForMachine
+            existing_bookings: allDryerBookingsForMachine
           });
           apiResponse.validationError(res,
             `Trocknungsraum-Slots müssen direkt aufeinanderfolgend sein. ` +
-            `Ihre bestehenden Trocknungsraum-Buchungen: ${existingDryerBookingsForMachine.map(b => `${b.date} ${b.slot}`).join(', ')}`
+            `Ihre bestehenden Trocknungsraum-Buchungen: ${allDryerBookingsForMachine.map(b => `${b.date} ${b.slot}`).join(', ')}`
           );
           return;
         }
@@ -3674,24 +3674,29 @@ apiV1.post('/bookings', async (req, res) => {
     }
     
     // 2. Prüfe: Derselbe Slot + Datum auf verschiedenen Maschinen (REGEL 7)
-    const existingBookingSameSlot = await dbHelper.get(
-      'SELECT b.*, m.name as machine_name, m.type as machine_type FROM bookings b INNER JOIN machines m ON b.machine_id = m.id WHERE b.user_name = ? AND b.date = ? AND b.slot = ? AND b.machine_id != ?',
-      [validatedUserName, validatedDate, validatedSlot, validatedMachineId]
-    );
-    
-    if (existingBookingSameSlot) {
-      logger.warn('Buchung erstellen: Doppelbuchung erkannt (gleicher Slot auf anderer Maschine)', {
-        user_name: validatedUserName,
-        date: validatedDate,
-        slot: validatedSlot,
-        existing_machine: existingBookingSameSlot.machine_name,
-        requested_machine_id: validatedMachineId
-      });
-      apiResponse.validationError(res,
-        `Sie haben bereits eine Buchung für den Slot ${validatedSlot} am ${validatedDate} auf ${existingBookingSameSlot.machine_name}. ` +
-        `Eine Person darf nicht zwei Buchungen im gleichen Slot haben, auch nicht auf unterschiedlichen Maschinen.`
+    // WICHTIG: Diese Prüfung gilt NUR für Trocknungsräume, NICHT für Waschmaschinen!
+    // Für Waschmaschinen ist es erlaubt, denselben Slot auf verschiedenen Maschinen zu buchen
+    // (siehe REGEL 3: Bis zu 3 Waschmaschinen am Tag mit demselben Slot)
+    if (isDryer) {
+      const existingBookingSameSlot = await dbHelper.get(
+        'SELECT b.*, m.name as machine_name, m.type as machine_type FROM bookings b INNER JOIN machines m ON b.machine_id = m.id WHERE b.user_name = ? AND b.date = ? AND b.slot = ? AND b.machine_id != ? AND (m.type = ? OR m.type = ?)',
+        [validatedUserName, validatedDate, validatedSlot, validatedMachineId, 'dryer', 'tumbler']
       );
-      return;
+      
+      if (existingBookingSameSlot) {
+        logger.warn('Buchung erstellen: Doppelbuchung erkannt (gleicher Slot auf anderem Trocknungsraum)', {
+          user_name: validatedUserName,
+          date: validatedDate,
+          slot: validatedSlot,
+          existing_machine: existingBookingSameSlot.machine_name,
+          requested_machine_id: validatedMachineId
+        });
+        apiResponse.validationError(res,
+          `Sie haben bereits eine Buchung für den Slot ${validatedSlot} am ${validatedDate} auf ${existingBookingSameSlot.machine_name}. ` +
+          `Eine Person darf nicht zwei Trocknungsraum-Buchungen im gleichen Slot haben.`
+        );
+        return;
+      }
     }
     
     // Buchung erstellen
