@@ -265,6 +265,37 @@ header h1 {
     min-height: 40px;
 }
 
+/* Regeln-Hinweisbox unter den Eingabefeldern */
+.rules-info {
+    margin-top: 15px;
+    padding: 12px 14px;
+    border-radius: 6px;
+    background-color: var(--primary-light);
+    border: 1px solid var(--border-color-light);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.rules-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text-primary);
+}
+
+.rules-info ul {
+    list-style: disc;
+    padding-left: 18px;
+}
+
+.rules-info li {
+    margin-bottom: 4px;
+}
+
+.rules-info li:last-child {
+    margin-bottom: 0;
+}
+
 .message {
     padding: 12px 15px;
     border-radius: 4px;

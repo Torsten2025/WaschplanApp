@@ -59,7 +59,7 @@ function testRequest(method, endpoint, body = null) {
 }
 
 async function runTests() {
-  console.log('=== TEST: Regel 1 - Zeitliche Struktur (Feste Slots) ===\n');
+  console.log('=== TEST: Regel 1 - Zeitliche Struktur (Feste Slots: 07–12, 12–17, 17–21) ===\n');
   const slotsResult = await testRequest('GET', '/slots');
   if (slotsResult.success && slotsResult.data.data) {
     const slots = slotsResult.data.data;
@@ -108,7 +108,7 @@ async function runTests() {
   const booking1 = await testRequest('POST', '/bookings', {
     machine_id: firstWasher,
     date: today,
-    slot: '08:00-12:00',
+    slot: '07:00-12:00',
     user_name: user
   });
   
@@ -119,7 +119,7 @@ async function runTests() {
     const booking2 = await testRequest('POST', '/bookings', {
       machine_id: secondWasher,
       date: today,
-      slot: '12:00-16:00',
+      slot: '12:00-17:00',
       user_name: user
     });
     
@@ -130,7 +130,7 @@ async function runTests() {
       const booking3 = await testRequest('POST', '/bookings', {
         machine_id: thirdWasher,
         date: today,
-        slot: '16:00-20:00',
+        slot: '17:00-21:00',
         user_name: user
       });
       
@@ -166,7 +166,7 @@ async function runTests() {
   const washerSunday = await testRequest('POST', '/bookings', {
     machine_id: firstWasher,
     date: sunday,
-    slot: '08:00-12:00',
+    slot: '07:00-12:00',
     user_name: userSunday
   });
   
@@ -184,7 +184,7 @@ async function runTests() {
   const dryerSunday = await testRequest('POST', '/bookings', {
     machine_id: firstDryer,
     date: sunday,
-    slot: '08:00-12:00',
+    slot: '07:00-12:00',
     user_name: userSunday
   });
   
@@ -201,7 +201,7 @@ async function runTests() {
   const double1 = await testRequest('POST', '/bookings', {
     machine_id: firstWasher,
     date: today,
-    slot: '08:00-12:00',
+    slot: '07:00-12:00',
     user_name: userDouble
   });
   
@@ -212,7 +212,7 @@ async function runTests() {
     const double2 = await testRequest('POST', '/bookings', {
       machine_id: firstDryer,
       date: today,
-      slot: '08:00-12:00',
+      slot: '07:00-12:00',
       user_name: userDouble
     });
     

@@ -286,16 +286,16 @@ async function fetchSlots() {
       return cache.slots.data;
     }
     
-    // Fallback auf statische Slots
+    // Fallback auf statische Slots (Waschküchenordnung: 07–12, 12–17, 17–21)
     if (typeof logger !== 'undefined') {
       logger.warn('Verwende statische Slots als Fallback');
     } else {
       console.warn('Verwende statische Slots als Fallback');
     }
     return [
-      { start: '08:00', end: '12:00', label: '08:00-12:00' },
-      { start: '12:00', end: '16:00', label: '12:00-16:00' },
-      { start: '16:00', end: '20:00', label: '16:00-20:00' }
+      { start: '07:00', end: '12:00', label: '07:00-12:00' },
+      { start: '12:00', end: '17:00', label: '12:00-17:00' },
+      { start: '17:00', end: '21:00', label: '17:00-21:00' }
     ];
   }
 }

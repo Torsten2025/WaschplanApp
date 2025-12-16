@@ -54,7 +54,7 @@
             </section>
 
             <!-- Eingabefelder (nur für Tagesübersicht) -->
-            <section class="input-section" id="input-section" aria-label="Eingabefelder">
+            <section class="input-section" id="input-section" aria-label="Eingabefelder und Regeln">
                 <div class="input-group">
                     <label for="date-input">Datum:</label>
                     <input type="date" id="date-input" required aria-required="true" aria-label="Datum auswählen">
@@ -63,6 +63,16 @@
                 <div class="input-group">
                     <label for="name-input">Name:</label>
                     <input type="text" id="name-input" placeholder="Ihr Name" required aria-required="true" aria-label="Ihr Name eingeben" autocomplete="name">
+                </div>
+                <!-- Kurzinfo zu den wichtigsten Regeln -->
+                <div class="rules-info" aria-label="Wichtige Regeln für die Waschküche">
+                    <h2 class="rules-title">Wichtige Regeln</h2>
+                    <ul>
+                        <li><strong>Zeiten:</strong> Es gibt drei feste Slots: 07:00–12:00, 12:00–17:00, 17:00–21:00.</li>
+                        <li><strong>Sonntag:</strong> Waschmaschinen sind am Sonntag gesperrt. Trocknungsräume können weiterhin gebucht werden.</li>
+                        <li><strong>Nur 1× im Voraus:</strong> Pro Person ist maximal eine zukünftige Buchung erlaubt (heute ist immer zusätzlich möglich).</li>
+                        <li><strong>Doppelbuchungen:</strong> Sie können nicht zwei Slots am gleichen Datum und in der gleichen Zeit belegen.</li>
+                    </ul>
                 </div>
             </section>
 

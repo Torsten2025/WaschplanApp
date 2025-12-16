@@ -886,10 +886,12 @@ function initDatabase() {
 }
 
 // Feste Slots (nicht in Datenbank gespeichert)
+// Abbildung der offiziellen Zeitfenster aus der Waschküchenordnung:
+// 07–12 Uhr, 12–17 Uhr, 17–21 Uhr
 const TIME_SLOTS = [
-  { start: '08:00', end: '12:00', label: '08:00-12:00' },
-  { start: '12:00', end: '16:00', label: '12:00-16:00' },
-  { start: '16:00', end: '20:00', label: '16:00-20:00' }
+  { start: '07:00', end: '12:00', label: '07:00-12:00' },
+  { start: '12:00', end: '17:00', label: '12:00-17:00' },
+  { start: '17:00', end: '21:00', label: '17:00-21:00' }
 ];
 
 /**
