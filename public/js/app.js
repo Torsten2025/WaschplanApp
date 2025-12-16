@@ -576,7 +576,9 @@ function renderSlots() {
       });
       
       const isBooked = !!booking;
-      const isOwnBooking = booking && booking.user_name === currentUserName;
+      // Verwende currentUser.username wenn eingeloggt, sonst currentUserName
+      const userName = currentUser?.username || currentUserName;
+      const isOwnBooking = booking && booking.user_name === userName;
       
       // Debug für spezifischen Slot
       if (typeof logger !== 'undefined') {
@@ -2503,22 +2505,31 @@ function renderMonthSingleGrid(containerId, machineList, daysInMonth) {
   
   container.innerHTML = tableHTML;
   
-  // Event-Listener für Zellen-Clicks (vereinfacht - ohne Input-Overlay für jetzt)
-  container.addEventListener('click', (e) => {
+  // Event-Listener für Zellen-Clicks (alte Listener entfernen, bevor neue hinzugefügt werden)
+  const oldHandler = container._clickHandler;
+  if (oldHandler) {
+    container.removeEventListener('click', oldHandler);
+  }
+  
+  const clickHandler = (e) => {
     const cell = e.target.closest('.schedule-cell');
     if (cell && !cell.classList.contains('sunday') && !cell.classList.contains('booked')) {
       const machineId = parseInt(cell.dataset.machineId);
       const date = cell.dataset.date;
       const slot = cell.dataset.slot;
       
-      // Einfache Buchung (vereinfacht - ohne Input-Overlay)
-      if (currentUserName) {
+      // Verwende currentUser.username wenn eingeloggt, sonst currentUserName
+      const userName = currentUser?.username || currentUserName;
+      if (userName) {
         handleSlotClickForMonthWeek(machineId, slot, date);
       } else {
         showMessage('Bitte melden Sie sich zuerst an.', 'error');
       }
     }
-  });
+  };
+  
+  container._clickHandler = clickHandler;
+  container.addEventListener('click', clickHandler);
 }
 
 /**
