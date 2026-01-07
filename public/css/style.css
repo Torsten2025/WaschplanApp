@@ -1221,59 +1221,8 @@ button:focus-visible,
 }
 
 /* ============================================================================
-   ANSICHTS-STYLES (Tag, Woche, Monat)
+   ANSICHTS-STYLES (nur noch Wochenansicht)
    ============================================================================ */
-
-/* Ansichtsauswahl */
-.view-selector-section {
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
-}
-
-.view-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.view-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 1rem 1.5rem;
-    background: var(--bg-secondary);
-    border: 2px solid var(--border-color);
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-    color: var(--text-color);
-}
-
-.view-btn:hover {
-    background: var(--hover-bg);
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-}
-
-.view-btn.active {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-    color: white;
-}
-
-.view-icon {
-    font-size: 1.5rem;
-}
-
-.view-label {
-    font-weight: 500;
-}
 
 /* Navigation */
 .navigation-section {
@@ -1410,142 +1359,6 @@ button:focus-visible,
     padding: 1rem;
 }
 
-/* Monatsübersicht */
-.month-view-section {
-    margin: 2rem 0;
-}
-
-.month-calendar {
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-}
-
-.month-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.month-weekday {
-    text-align: center;
-    font-weight: 600;
-    color: var(--text-secondary);
-    padding: 0.5rem;
-}
-
-.month-days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.5rem;
-}
-
-.month-day {
-    min-height: 100px;
-    padding: 0.5rem;
-    background: var(--bg-secondary);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-    position: relative;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.month-day:hover:not(.empty):not(.past) {
-    background: var(--hover-bg);
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-}
-
-.month-day.empty {
-    background: transparent;
-    border: none;
-    cursor: default;
-}
-
-.month-day.past {
-    opacity: 0.5;
-    cursor: default;
-}
-
-.month-day.today {
-    border: 2px solid var(--primary-color);
-    background: var(--primary-light);
-}
-
-.month-day-number {
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: var(--text-color);
-}
-
-.month-day-bookings {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.month-booking-count {
-    display: inline-block;
-    background: var(--primary-color);
-    color: white;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-    text-align: center;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.month-booking-details {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 0.5rem;
-    z-index: 10;
-    box-shadow: var(--shadow);
-    margin-top: 0.25rem;
-}
-
-.month-day:hover .month-booking-details {
-    display: block;
-}
-
-.month-booking-item {
-    padding: 0.25rem 0;
-    font-size: 0.75rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.month-booking-item:last-child {
-    border-bottom: none;
-}
-
-.month-booking-slot {
-    font-weight: 600;
-    color: var(--primary-color);
-    display: block;
-}
-
-.month-booking-machine {
-    color: var(--text-color);
-    display: block;
-}
-
-.month-booking-user {
-    color: var(--text-secondary);
-    font-size: 0.7rem;
-    display: block;
-}
 
 .loading {
     text-align: center;
@@ -1553,28 +1366,10 @@ button:focus-visible,
     color: var(--text-secondary);
 }
 
-/* Responsive Design für Ansichten */
+/* Responsive Design für Wochenansicht */
 @media (max-width: 768px) {
-    .view-buttons {
-        flex-direction: column;
-    }
-    
-    .view-btn {
-        width: 100%;
-    }
-    
     .week-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .month-weekdays,
-    .month-days {
-        gap: 0.25rem;
-    }
-    
-    .month-day {
-        min-height: 80px;
-        padding: 0.25rem;
     }
     
     .nav-controls {

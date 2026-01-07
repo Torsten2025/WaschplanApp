@@ -36,55 +36,14 @@
         </header>
 
         <main id="main-content" tabindex="-1">
-            <!-- Ansichtsauswahl -->
-            <section class="view-selector-section" aria-label="Ansichtsauswahl">
-                <div class="view-buttons">
-                    <button id="view-day" class="view-btn active" data-view="day" aria-pressed="true">
-                        <span class="view-icon">📅</span>
-                        <span class="view-label">Tagesübersicht</span>
-                    </button>
-                    <button id="view-week" class="view-btn" data-view="week" aria-pressed="false">
-                        <span class="view-icon">📆</span>
-                        <span class="view-label">Arbeitswoche</span>
-                    </button>
-                    <button id="view-month" class="view-btn" data-view="month" aria-pressed="false">
-                        <span class="view-icon">🗓️</span>
-                        <span class="view-label">Monatsübersicht</span>
-                    </button>
-                </div>
-            </section>
-
-            <!-- Eingabefelder (nur für Tagesübersicht) -->
-            <section class="input-section" id="input-section" aria-label="Eingabefelder und Regeln">
-                <div class="input-group">
-                    <label for="date-input">Datum:</label>
-                    <input type="date" id="date-input" required aria-required="true" aria-label="Datum auswählen">
-                    <span id="date-display" class="date-display" aria-live="polite"></span>
-                </div>
-                <div class="input-group">
-                    <label for="name-input">Name:</label>
-                    <input type="text" id="name-input" placeholder="Ihr Name" required aria-required="true" aria-label="Ihr Name eingeben" autocomplete="name">
-                </div>
-                <!-- Kurzinfo zu den wichtigsten Regeln -->
-                <div class="rules-info" aria-label="Wichtige Regeln für die Waschküche">
-                    <h2 class="rules-title">Wichtige Regeln</h2>
-                    <ul>
-                        <li><strong>Zeiten:</strong> Es gibt drei feste Slots: 07:00–12:00, 12:00–17:00, 17:00–21:00.</li>
-                        <li><strong>Sonntag:</strong> Waschmaschinen sind am Sonntag gesperrt. Trocknungsräume können weiterhin gebucht werden.</li>
-                        <li><strong>Nur 1× im Voraus:</strong> Pro Person ist maximal eine zukünftige Buchung erlaubt (heute ist immer zusätzlich möglich).</li>
-                        <li><strong>Doppelbuchungen:</strong> Sie können nicht zwei Slots am gleichen Datum und in der gleichen Zeit belegen.</li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- Navigation für Woche/Monat -->
-            <section class="navigation-section hidden" id="navigation-section" aria-label="Navigation">
+            <!-- Navigation für Woche -->
+            <section class="navigation-section" id="navigation-section" aria-label="Navigation">
                 <div class="nav-controls">
-                    <button id="nav-prev" class="nav-btn" aria-label="Vorherige Periode">
+                    <button id="nav-prev" class="nav-btn" aria-label="Vorherige Woche">
                         <span>←</span>
                     </button>
                     <div id="nav-display" class="nav-display" aria-live="polite"></div>
-                    <button id="nav-next" class="nav-btn" aria-label="Nächste Periode">
+                    <button id="nav-next" class="nav-btn" aria-label="Nächste Woche">
                         <span>→</span>
                     </button>
                 </div>
@@ -95,19 +54,8 @@
                 <div id="messages"></div>
             </section>
 
-            <!-- Bereich für Maschinenübersicht (nur für Tagesübersicht) -->
-            <section class="machines-section" id="machines-section" aria-label="Maschinenübersicht">
-                <h2>Maschinenübersicht</h2>
-                <div id="machines-container" role="list" aria-label="Liste der verfügbaren Maschinen"></div>
-            </section>
-
-            <!-- Bereich für Tagesübersicht -->
-            <section class="day-view-section" id="day-view-section" aria-label="Tagesübersicht">
-                <div id="slots-container" role="region" aria-label="Zeitfenster für alle Maschinen"></div>
-            </section>
-
             <!-- Bereich für Wochenübersicht (zettel-ähnliches Design) -->
-            <section class="week-view-section hidden" id="week-view-section" aria-label="Arbeitswochenübersicht">
+            <section class="week-view-section" id="week-view-section" aria-label="Arbeitswochenübersicht">
                 <div id="week-container" role="region" aria-label="Buchungen für die Arbeitswoche">
                     <!-- Struktur wird dynamisch generiert -->
                     <!-- Bereich 1: Waschmaschinen -->
@@ -133,47 +81,6 @@
                         <h2 class="section-title">Tumbler</h2>
                         <div class="table-wrapper">
                             <table id="week-grid-tumblers" class="schedule-table" role="table" aria-label="Tumbler">
-                                <!-- Tabelle wird dynamisch generiert -->
-                            </table>
-                        </div>
-                    </section>
-                </div>
-            </section>
-
-            <!-- Bereich für Monatsübersicht (zettel-ähnliches Design) -->
-            <section class="month-view-section hidden" id="month-view-section" aria-label="Monatsübersicht">
-                <div id="month-container" role="region" aria-label="Buchungen für den Monat">
-                    <!-- Struktur wird dynamisch generiert -->
-                    <div id="month-header" class="month-header">
-                        <div class="month-selector">
-                            <button id="month-prev" class="nav-btn" aria-label="Vorheriger Monat">←</button>
-                            <span id="month-display" class="month-display"></span>
-                            <button id="month-next" class="nav-btn" aria-label="Nächster Monat">→</button>
-                        </div>
-                    </div>
-                    <!-- Bereich 1: Waschmaschinen -->
-                    <section class="schedule-section">
-                        <h2 class="section-title">Waschmaschinen</h2>
-                        <div class="table-wrapper">
-                            <table id="month-grid-washers" class="schedule-table" role="table" aria-label="Waschmaschinen">
-                                <!-- Tabelle wird dynamisch generiert -->
-                            </table>
-                        </div>
-                    </section>
-                    <!-- Bereich 2: Trockenräume -->
-                    <section class="schedule-section">
-                        <h2 class="section-title">Trockenräume</h2>
-                        <div class="table-wrapper">
-                            <table id="month-grid-dryers" class="schedule-table" role="table" aria-label="Trockenräume">
-                                <!-- Tabelle wird dynamisch generiert -->
-                            </table>
-                        </div>
-                    </section>
-                    <!-- Bereich 3: Tumbler -->
-                    <section class="schedule-section">
-                        <h2 class="section-title">Tumbler</h2>
-                        <div class="table-wrapper">
-                            <table id="month-grid-tumblers" class="schedule-table" role="table" aria-label="Tumbler">
                                 <!-- Tabelle wird dynamisch generiert -->
                             </table>
                         </div>
