@@ -3039,9 +3039,7 @@ apiV1.post('/bookings', async (req, res) => {
       ? process.env.BLOCKED_WEEKDAYS.split(',').map(d => parseInt(d.trim()))
       : [0]; // Standard: Sonntag
     
-    // Prüfe ob es ein Sperrtag ist UND ob es eine Waschmaschine ist
-    // Trocknungsräume können auch an Sperrtagen gebucht werden
-    const isWasher = machine.type === 'washer';
+    // Prüfe ob es ein Sperrtag ist
     const isBlockedDay = BLOCKED_WEEKDAYS.includes(dayOfWeek);
     
     // Debug-Logging
@@ -3054,14 +3052,13 @@ apiV1.post('/bookings', async (req, res) => {
       blockedWeekdays: BLOCKED_WEEKDAYS,
       isBlockedDay: isBlockedDay,
       machine_type: machine.type,
-      is_washer: isWasher,
-      should_block: isBlockedDay && isWasher
+      should_block: isBlockedDay
     });
     
-    // Nur blockieren wenn: Sperrtag UND Waschmaschine
-    if (isBlockedDay && isWasher) {
+    // Global blockieren wenn: Sperrtag
+    if (isBlockedDay) {
       const dayNames = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
-      logger.warn('Buchung erstellen: Sperrtag für Waschmaschine erkannt', {
+      logger.warn('Buchung erstellen: Sperrtag erkannt', {
         date: validatedDate,
         dayOfWeek,
         dayName: dayNames[dayOfWeek],
@@ -3070,7 +3067,7 @@ apiV1.post('/bookings', async (req, res) => {
         user_name: validatedUserName
       });
       apiResponse.validationError(res, 
-        `Waschmaschinen-Buchungen sind an ${dayNames[dayOfWeek]}en nicht möglich. Trocknungsräume können jedoch gebucht werden. Bitte wählen Sie einen anderen Tag oder eine Trocknungsraum-Maschine.`
+        `Buchungen sind an ${dayNames[dayOfWeek]}en nicht möglich. Bitte wählen Sie einen anderen Tag.`
       );
       return;
     }
